@@ -54,7 +54,7 @@ const DashboardPage = () => {
             <br />
             Start a new goal and improve your result.
           </p>
-          <Link href="/courses">
+          <Link href="/dashboard/courses">
             <button className="bg-black text-white rounded-md p-2 w-28 my-2">
               Book Now
             </button>

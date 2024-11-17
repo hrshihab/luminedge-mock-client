@@ -108,15 +108,15 @@ const Sidebar = () => {
           </li>
           <li className="hover:bg-[#FACE39] hover:text-black flex justify-center">
             <Link
-              href="/dashboard/user-info"
+              href="/dashboard/courses"
               className={`flex items-center px-4 py-3 ${
-                pathname === "/dashboard/user-info"
+                pathname === "/dashboard/courses"
                   ? "bg-[#FACE39] text-black font-bold"
                   : ""
               }`}
             >
               <TbReport className="h-5 w-5 mr-2" />
-              <span className="inline">Exam</span>
+              <span className="inline">Courses</span>
             </Link>
           </li>
           <li

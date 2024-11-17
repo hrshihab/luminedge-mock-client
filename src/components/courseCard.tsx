@@ -12,7 +12,7 @@ const CourseCard = ({ course }: { course: Course }) => {
       <figure>
         <Image src={course.image} alt={course.name} width={308} height={268} />
       </figure>
-      <Link href={`dashboard/booking/${course._id}`}>
+      <Link href={`/dashboard/booking/${course._id}`}>
         <div className="card-body bg-black text-gray-400 hover:text-black hover:bg-[#FACE39] rounded-b-lg">
           <p className="text-xs  ">
             Very different from conventional <br />

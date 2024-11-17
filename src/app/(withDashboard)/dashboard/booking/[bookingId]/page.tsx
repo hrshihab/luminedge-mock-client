@@ -117,7 +117,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
   };
 
   return (
-    <div className="w-[80%] mx-auto">
+    <div className="w-[95%] mx-auto">
       <div className="flex flex-col items-start justify-center my-8">
         <h3 className="text-xl text-gray-800 font-semibold">
           Please Select Your
