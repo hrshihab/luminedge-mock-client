@@ -71,7 +71,7 @@ const Table = ({ userId }: { userId: string }) => {
 
             {/* Re-schedule Button */}
             <td>
-              <Link href={`/courses`}>
+              <Link href={`/dashboard/courses`}>
                 <button
                   disabled={booking.status !== "active"}
                   onClick={() => onDeleteBooking(booking._id)} // Call delete function

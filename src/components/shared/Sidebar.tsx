@@ -119,7 +119,7 @@ const Sidebar = () => {
               <span className="inline">Courses</span>
             </Link>
           </li>
-          <li
+          {/* <li
             className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
               pathname === "/dashboard/settings"
                 ? "bg-[#FACE39] text-black font-bold"
@@ -163,7 +163,7 @@ const Sidebar = () => {
               <IoWalletOutline className="h-5 w-5 mr-2" />
               <span className="inline">Payment</span>
             </Link>
-          </li>
+          </li> */}
           {/* logout */}
           <li className="hover:bg-[#FACE39] hover:text-black flex justify-center">
             <button

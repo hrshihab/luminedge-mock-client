@@ -59,7 +59,7 @@ const SidebarAdmin = () => {
         <li
           className={`hover:bg-[#FACE39] hover:text-black flex justify-center rounded-full ${
             pathname === "/admin/dashboard"
-              ? "bg-[#FACE39] text-black font-bold"
+              ? "bg-[#FACE39] text-black font-bold rounded-full"
               : ""
           }`}
         >
@@ -73,7 +73,7 @@ const SidebarAdmin = () => {
             href="/admin/create-schedule"
             className={`flex items-center px-4 py-3 ${
               pathname === "/admin/create-schedule"
-                ? "bg-[#FACE39] text-black font-bold"
+                ? "bg-[#FACE39] text-black font-bold rounded-full"
                 : ""
             }`}
           >
@@ -81,25 +81,11 @@ const SidebarAdmin = () => {
             <span className="inline">Create Schedule</span>
           </Link>
         </li>
-        <li
-          className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
-            pathname === "/admin/enrolled-students"
-              ? "bg-[#FACE39] text-black font-bold"
-              : ""
-          }`}
-        >
-          <Link
-            href="/admin/enrolled-students"
-            className="flex items-center px-4 py-3"
-          >
-            <TbMoneybag className="h-5 w-5 mr-2" />
-            <span className="inline">Enrolled Students</span>
-          </Link>
-        </li>
+
         <li
           className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
             pathname === "/admin/available-schedules"
-              ? "bg-[#FACE39] text-black font-bold"
+              ? "bg-[#FACE39] text-black font-bold rounded-full"
               : ""
           }`}
         >
@@ -114,7 +100,7 @@ const SidebarAdmin = () => {
         <li
           className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
             pathname === "/admin/all-users"
-              ? "bg-[#FACE39] text-black font-bold"
+              ? "bg-[#FACE39] text-black font-bold rounded-full"
               : ""
           }`}
         >
@@ -126,7 +112,7 @@ const SidebarAdmin = () => {
         <li
           className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
             pathname === "/admin/reports"
-              ? "bg-[#FACE39] text-black font-bold"
+              ? "bg-[#FACE39] text-black font-bold rounded-full"
               : ""
           }`}
         >

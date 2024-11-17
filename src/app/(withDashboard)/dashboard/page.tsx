@@ -6,16 +6,22 @@ import { RxAvatar } from "react-icons/rx";
 import { FaArrowDown } from "react-icons/fa";
 import Table from "@/components/table";
 import Link from "next/link";
+import { useRouter } from "next/dist/client/router";
 
 const DashboardPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
+
+  //const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Awaiting user ID if getUserIdFromToken is asynchronous
         const userIdFromToken = await getUserIdFromToken();
+        // if (!userIdFromToken) {
+        //   router.push("/login");
+        // }
 
         if (userIdFromToken) {
           setUserId(userIdFromToken.userId);
@@ -37,7 +43,7 @@ const DashboardPage = () => {
 
   console.log(userData);
 
-  if (!userData) {
+  if (!userData || !userData.user) {
     return <div>Loading...</div>;
   }
 
@@ -75,14 +81,14 @@ const DashboardPage = () => {
         </div>
         <div className="stats shadow flex justify-end">
           <div className="stat place-items-center">
-            <div className="stat-title">Total Mock</div>
-            <div className="stat-value">5</div>
+            <div className="stat-title">Purchased Mock</div>
+            <div className="stat-value">{userData.user.totalMock}</div>
           </div>
 
           <div className="stat place-items-center">
             <div className="stat-title">Attended</div>
             <div className="stat-value text-secondary">
-              {5 - userData.user.mock}
+              {userData.user.totalMock - userData.user.mock}
             </div>
           </div>
 

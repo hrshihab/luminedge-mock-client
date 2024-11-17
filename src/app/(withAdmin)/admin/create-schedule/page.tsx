@@ -4,6 +4,8 @@ import MultiDatePicker from "react-multi-date-picker";
 import DateObject from "react-date-object";
 import { getUserIdFromToken } from "@/app/helpers/jwt";
 import { useRouter } from "next/navigation";
+import { createSchedules } from "@/app/utils/actions/createSchedules";
+import { toast } from "react-hot-toast";
 
 interface TimeSlot {
   startTime: string;
@@ -54,7 +56,7 @@ export default function CreateSchedulePage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formattedData = formData.dates.map((date) => {
@@ -76,6 +78,16 @@ export default function CreateSchedulePage() {
     });
 
     console.log(formattedData);
+    try {
+      const res = await createSchedules(formattedData as any);
+      if (res.success) {
+        toast.success("Schedule created successfully");
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

@@ -40,6 +40,35 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
 
   const router = useRouter();
 
+  const courses = [
+    {
+      _id: "67337c880794d577cd982b75",
+      name: "IELTS",
+      image: "https://i.ibb.co.com/MPBCMfb/ielts.webp",
+    },
+    {
+      _id: "67337c880794d577cd982b76",
+      name: "Pearson PTE",
+      image: "https://i.ibb.co.com/4mrhCkN/pte.webp",
+    },
+    {
+      _id: "67337c880794d577cd982b77",
+      name: "GRE",
+      image: "https://i.ibb.co.com/SX7t52h/gre.webp",
+    },
+    {
+      _id: "67337c880794d577cd982b78",
+      name: "TOEFL",
+      image: "https://i.ibb.co.com/vjyL3QC/toefl.webp",
+    },
+  ];
+
+  // Function to get course name by bookingId
+  const getCourseNameByBookingId = (bookingId: string) => {
+    const course = courses.find((course) => course._id === bookingId);
+    return course ? course.name : "Unknown Course";
+  };
+
   // Function to fetch schedule data based on selected date
   const fetchScheduleData = async (selectedDate: Date) => {
     try {
@@ -116,22 +145,36 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
     }
   };
 
+  const courseName = getCourseNameByBookingId(params.bookingId);
+
+  // Determine if the dropdowns should be enabled
+  const isDropdownEnabled = courseName === "IELTS";
+
+  // Determine if the button should be enabled
+  const isButtonEnabled = !!selectedSlotId;
+
   return (
-    <div className="w-[95%] mx-auto">
-      <div className="flex flex-col items-start justify-center my-8">
-        <h3 className="text-xl text-gray-800 font-semibold">
-          Please Select Your
+    <div className="w-full max-w-4xl mx-auto px-4">
+      <div className="flex flex-col items-start justify-center my-4 xl:my-8">
+        <h3 className="text-lg md:text-xl text-gray-800 font-semibold">
+          Please Select Your{" "}
+          <span className="bg-[#f7cb37] text-white font-bold text-xl shadow-lg px-2 py-1 rounded-lg">
+            {courseName}
+          </span>
         </h3>
-        <h1 className="text-3xl font-bold">Mock Test Date and Time</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">
+          Mock Test Date and Time
+        </h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-28 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-28 mb-8">
         <div className="w-full flex flex-col items-start">
           <label htmlFor="testType">Test Type</label>
           <select
             className="select select-bordered bg-[#FACE39] text-black w-full"
             value={testType}
             onChange={(e) => setTestType(e.target.value)}
+            disabled={!isDropdownEnabled} // Disable if course is not IELTS
           >
             <option value="Paper Based">Paper Based</option>
             <option value="Computer Based">Computer Based</option>
@@ -144,6 +187,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
             className="select select-bordered bg-[#FACE39] text-black w-full"
             value={testSystem}
             onChange={(e) => setTestSystem(e.target.value)}
+            disabled={!isDropdownEnabled} // Disable if course is not IELTS
           >
             <option value="Academic">Academic</option>
             <option value="General Training">General Training</option>
@@ -151,26 +195,22 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 mx-auto ">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-auto">
         {/* Calendar Component */}
         <Calendar onChange={onChange} value={value} />
 
         {/* Display fetched schedule data */}
-        <div className="mt-8 w-[90%] mx-auto ">
+        <div className="mt-8 w-full mx-auto">
           {scheduleData.length > 0 ? (
             scheduleData.map((schedule, index) => (
               <div
                 key={index}
-                className="w-full  grid grid-cols-2 gap-4  mt-2 rounded"
+                className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 rounded"
               >
-                {/* <p>Course ID: {schedule.courseId}</p>
-        <p>Status: {schedule.status}</p>
-        <p>Test Type: {schedule.testType}</p>
-        <p>Test System: {schedule.testSystem}</p> */}
                 {schedule.timeSlots.map((slot, slotIndex) => (
                   <div
                     key={slotIndex}
-                    className={`mt-2 pl-4 py-2 w-[90%] rounded-lg ${
+                    className={`mt-2 pl-4 py-2 w-full rounded-lg ${
                       selectedSlotId === slot.slotId
                         ? "bg-yellow-300"
                         : "bg-gray-100"
@@ -179,7 +219,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
                   >
                     <div className="grid grid-cols-2">
                       <div>
-                        <h3 className=" text-sm font-semibold text-gray-800">
+                        <h3 className="text-sm font-semibold text-gray-800">
                           {slot.startTime.slice(0, 5)}
                           <p className="text-xs text-gray-500">Start</p>
                         </h3>
@@ -208,7 +248,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
       <div className="w-full flex justify-end mt-4">
         <button
           className="btn bg-[#FACE39] text-black hover:bg-white hover:border-2 hover:border-[#FACE39] hover:text-black rounded-full px-8 shadow-lg"
-          disabled={!selectedSlotId} // Enable if a slot is selected
+          disabled={!isButtonEnabled} // Disable if no slot is selected
           onClick={handleProceed}
         >
           Proceed

@@ -1,33 +1,43 @@
 "use client";
+import { updateMockNumber } from "@/app/utils/actions/mockUpdate";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { AiOutlineEye } from "react-icons/ai"; // Eye icon for viewing user details
 import { FiDownload } from "react-icons/fi"; // Download icon
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   email: string;
   status: string;
   paymentStatus: string;
   createdAt: string;
+  mockNumber: string;
 }
 
 const TableAdmin = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null); // Holds the user to view
-  const [isModalOpen, setIsModalOpen] = useState(false); // Controls modal visibility
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]); // Holds filtered users
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all"); // Holds the selected status filter
+  const [currentPage, setCurrentPage] = useState<number>(1); // Current page number
+  const [usersPerPage, setUsersPerPage] = useState<number>(10); // Users per page
+  const [mockNumber, setMockNumber] = useState<string>(""); // State for mock number
 
   useEffect(() => {
-    // Fetch all users when the component mounts
     const fetchUsers = async () => {
       try {
-        console.log("FROM TABLE ADMIN", process.env.NEXT_PUBLIC_BACKEND_URL);
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/users`
         );
-        setUsers(response.data.users);
+        const sortedUsers = response.data.users.sort(
+          (a: User, b: User) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setUsers(sortedUsers);
+        setFilteredUsers(sortedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -35,6 +45,20 @@ const TableAdmin = () => {
 
     fetchUsers();
   }, []);
+
+  // Filter users by status
+  useEffect(() => {
+    if (statusFilter === "all") {
+      setFilteredUsers(users);
+    } else {
+      setFilteredUsers(users.filter((user) => user.status === statusFilter));
+    }
+  }, [statusFilter, users]);
+
+  // Calculate pagination
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
   // Function to change user status
   const onChangeStatus = async (userId: string, newStatus: string) => {
@@ -58,10 +82,32 @@ const TableAdmin = () => {
     }
   };
 
+  // Function to update user data with mock number
+  const onUpdateUser = async () => {
+    if (!selectedUser) return;
+    console.log("Mock Number before update:", mockNumber);
+
+    try {
+      await updateMockNumber(mockNumber, selectedUser);
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === selectedUser._id ? { ...user, mockNumber } : user
+        )
+      );
+      toast.success("User data updated successfully");
+      closeModal();
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      toast.error("Failed to update user data");
+    }
+  };
+
   // Function to view user details (opens modal and sets selected user)
   const onViewDetails = (user: User) => {
     setSelectedUser(user);
+    setMockNumber(user.mockNumber || ""); // Initialize mock number
     setIsModalOpen(true);
+    console.log("Selected User Mock Number:", user.mockNumber);
   };
 
   // Function to download user data
@@ -78,25 +124,41 @@ const TableAdmin = () => {
 
   return (
     <>
-      <table className="table">
+      {/* Filter by Status */}
+      <div className="mb-4">
+        <label htmlFor="statusFilter" className="mr-2">
+          Filter by Status:
+        </label>
+        <select
+          id="statusFilter"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-2 py-1 border rounded"
+        >
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="checked">Checked</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+
+      <table className="table-auto w-full border-collapse">
         {/* Table Head */}
         <thead>
-          <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Action</th>
+          <tr className="bg-gray-200">
+            <th className="px-4 py-2 text-left">Name</th>
+            <th className="px-4 py-2 text-left">Date</th>
+            <th className="px-4 py-2 text-left">Status</th>
+            <th className="px-4 py-2 text-left">Action</th>
           </tr>
         </thead>
         <tbody>
           {/* Row Mapping */}
-          {users.map((user: User) => (
-            <tr key={user._id}>
-              <td>{user.name}</td>
-              <td>{user.createdAt.slice(0, 10)}</td>
-
-              {/* Dropdown for Status */}
-              <td>
+          {currentUsers.map((user: User) => (
+            <tr key={user._id} className="border-b">
+              <td className="px-4 py-2">{user.name}</td>
+              <td className="px-4 py-2">{user.createdAt.slice(0, 10)}</td>
+              <td className="px-4 py-2">
                 <select
                   value={user.status}
                   onChange={(e) => onChangeStatus(user._id, e.target.value)}
@@ -107,9 +169,7 @@ const TableAdmin = () => {
                   <option value="completed">Completed</option>
                 </select>
               </td>
-
-              {/* Action Buttons */}
-              <td className="flex space-x-2">
+              <td className="px-4 py-2 flex space-x-2">
                 <button
                   onClick={() => onDownload(user._id)}
                   className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 flex items-center"
@@ -118,15 +178,51 @@ const TableAdmin = () => {
                 </button>
                 <button
                   onClick={() => onViewDetails(user)}
-                  className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
+                  className="px-4  py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
                 >
-                  <AiOutlineEye className="mr-1" /> View
+                  <AiOutlineEye className="mr-2" /> View
                 </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-4">
+        <div>
+          <label htmlFor="usersPerPage" className="mr-2">
+            Users per page:
+          </label>
+          <select
+            id="usersPerPage"
+            value={usersPerPage}
+            onChange={(e) => setUsersPerPage(Number(e.target.value))}
+            className="px-2 py-1 border rounded"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+          </select>
+        </div>
+        <div>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-2 py-1 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            Previous
+          </button>
+          <span className="mx-2">Page {currentPage}</span>
+          <button
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={indexOfLastUser >= filteredUsers.length}
+            className="px-2 py-1 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {/* Modal for User Details */}
       {isModalOpen && selectedUser && (
@@ -148,13 +244,32 @@ const TableAdmin = () => {
             <p>
               <strong>Created At:</strong> {selectedUser.createdAt}
             </p>
-
-            <button
-              onClick={closeModal}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Close
-            </button>
+            <div className="mt-4">
+              <label htmlFor="mockNumber" className="block mb-2">
+                Mock Number:
+              </label>
+              <input
+                type="text"
+                id="mockNumber"
+                value={mockNumber}
+                onChange={(e) => setMockNumber(e.target.value)}
+                className="px-2 py-1 border rounded w-full"
+              />
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={onUpdateUser}
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 mr-2"
+              >
+                Save
+              </button>
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

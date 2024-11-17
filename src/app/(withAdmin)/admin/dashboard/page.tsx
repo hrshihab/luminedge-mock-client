@@ -45,7 +45,7 @@ const DashboardPage = () => {
   const style = { "--value": 70 } as React.CSSProperties;
 
   return (
-    <div className="flex mx-auto gap-4">
+    <div className="flex max-w-[90%] mx-auto gap-4">
       <div className="w-[120%]">
         <h1 className="text-2xl text-start my-4"> Overview </h1>
         <div className="stats shadow flex justify-end">
@@ -81,15 +81,6 @@ const DashboardPage = () => {
             Students Waiting for Approval
           </h1>
           <TableAdmin />
-        </div>
-      </div>
-      <div className="w-[70%] rounded-box">
-        <div className="flex justify-end items-center gap-4 mr-8">
-          <RxAvatar className="text-4xl" />
-          <h1 className="text-xl text-start text-yellow-400 font-semibold my-4">
-            {userData.user.name}
-          </h1>
-          <FaArrowDown className="text-xl text-yellow-400" />
         </div>
       </div>
     </div>
