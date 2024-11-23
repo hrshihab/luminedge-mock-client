@@ -1,11 +1,24 @@
 // jwt.ts
 import { jwtDecode } from "jwt-decode";
+import { getFromLocalStorage, removeFromLocalStorage } from "../utils/local-storage";
+export const authKey = "accessToken";
 
 interface CustomJwtPayload {
   userId: string;
   role: string;
   [key: string]: any;  // for other potential payload properties
 }
+
+export const isLoggedIn = () => {
+  const authToken = getFromLocalStorage(authKey);
+  if (authToken) {
+     return !!authToken;
+  }
+};
+
+export const removeUser = () => {
+  return removeFromLocalStorage(authKey);
+};
 
 export const getUserIdFromToken = () => {
   // Ensure that the code runs only on the client side

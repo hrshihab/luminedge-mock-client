@@ -205,9 +205,11 @@ const LoginPage = () => {
                 </button>
               </div>
             </div>
-            <p className="text-xs text-end text-gray-500 mt-3 mb-10">
-              Forgot password?
-            </p>
+            <Link href="/forget-password">
+              <p className="text-xs text-end text-gray-500 mt-3 mb-10">
+                Forgot password?
+              </p>
+            </Link>
 
             <div className="form-control mt-4">
               <button type="submit" className="btn bg-[#FACE39]">

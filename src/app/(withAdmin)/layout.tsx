@@ -1,6 +1,8 @@
 import Sidebar from "@/components/shared/Sidebar";
 import SidebarAdmin from "@/components/shared/SidebarAdmin";
 import type { Metadata } from "next";
+import { useRouter } from "next/navigation";
+import { isLoggedIn } from "@/app/helpers/jwt";
 
 export const metadata: Metadata = {
   title: "Next Auth Dashboard",
@@ -12,6 +14,10 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const router = useRouter();
+  // if (!isLoggedIn()) {
+  //   return router.push("/login");
+  // }
   return (
     <div className="min-h-screen my-2">
       <div className="flex justify-around">
