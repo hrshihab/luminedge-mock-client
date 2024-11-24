@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MultiDatePicker from "react-multi-date-picker";
 import DateObject from "react-date-object";
 import { getUserIdFromToken } from "@/app/helpers/jwt";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createSchedules } from "@/app/utils/actions/createSchedules";
 import { toast } from "react-hot-toast";
 
@@ -20,6 +20,8 @@ export default function CreateSchedulePage() {
     timeSlots: {} as Record<string, TimeSlot[]>,
   });
   const router = useRouter();
+  const pathname = usePathname();
+
   if (!getUserIdFromToken()) {
     router.push("/login");
   }
@@ -71,8 +73,8 @@ export default function CreateSchedulePage() {
           endTime: `${slot.endTime}:00`,
           slot: slot.slot,
         })),
-        testSystem: "Computer-Based", // Assuming a default value, adjust as needed
-        testType: "GRE", // Assuming a default value, adjust as needed
+        testSystem: "Paper-Based", // Assuming a default value, adjust as needed
+        testType: "IELTS Paper Based", // Assuming a default value, adjust as needed
         status: "Scheduled", // Assuming a default value, adjust as needed
       };
     });
@@ -89,6 +91,10 @@ export default function CreateSchedulePage() {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    console.log(pathname);
+  }, [pathname]);
 
   return (
     <div className=" p-6 max-w-[80%] shadow-lg rounded-lg ">
@@ -107,7 +113,10 @@ export default function CreateSchedulePage() {
             <option value="" disabled>
               Select a course
             </option>
-            <option value="67337c880794d577cd982b75">IELTS</option>
+            <option value="67337c880794d577cd982b75">IELTS Paper Based</option>
+            <option value="6742b783d2f5950620f6df21">
+              IELTS Computer Based
+            </option>
             <option value="67337c880794d577cd982b76">Pearson PTE</option>
             <option value="67337c880794d577cd982b77">GRE</option>
             <option value="67337c880794d577cd982b78">TOEFL</option>

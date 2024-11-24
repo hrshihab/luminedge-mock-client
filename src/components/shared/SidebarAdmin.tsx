@@ -9,7 +9,7 @@ import {
   IoHomeOutline,
   IoLogOutOutline,
 } from "react-icons/io5";
-import { TbMoneybag, TbReport } from "react-icons/tb";
+import { TbBell, TbMoneybag, TbReport } from "react-icons/tb";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/utils/actions/logout";
 
@@ -97,6 +97,22 @@ const SidebarAdmin = () => {
             <span className="inline">Available Schedules</span>
           </Link>
         </li>
+        {/*booking-requests */}
+        <li
+          className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
+            pathname === "/admin/booking-requests"
+              ? "bg-[#FACE39] text-black font-bold rounded-full"
+              : ""
+          }`}
+        >
+          <Link
+            href="/admin/booking-requests"
+            className="flex items-center px-4 py-3"
+          >
+            <IoBagRemoveOutline className="h-5 w-5 mr-2" />
+            <span className="inline">Booking Requests</span>
+          </Link>
+        </li>
         <li
           className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
             pathname === "/admin/all-users"
@@ -111,14 +127,17 @@ const SidebarAdmin = () => {
         </li>
         <li
           className={`hover:bg-[#FACE39] hover:text-black flex justify-center ${
-            pathname === "/admin/reports"
+            pathname === "/admin/notifications"
               ? "bg-[#FACE39] text-black font-bold rounded-full"
               : ""
           }`}
         >
-          <Link href="/admin/reports" className="flex items-center px-4 py-3">
-            <TbReport className="h-5 w-5 mr-2" />
-            <span className="inline">Reports</span>
+          <Link
+            href="/admin/notifications"
+            className="flex items-center px-4 py-3"
+          >
+            <TbBell className="h-5 w-5 mr-2" />
+            <span className="inline">Notifications</span>
           </Link>
         </li>
         <li className="hover:bg-[#FACE39] hover:text-black flex justify-center">

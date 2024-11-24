@@ -21,7 +21,7 @@ const CoursesPage = async () => {
     },
     {
       _id: "67337c880794d577cd982b78",
-      name: "TOEFL",
+      name: "TOFEL",
       image: "https://i.ibb.co.com/vjyL3QC/toefl.webp",
     },
   ];

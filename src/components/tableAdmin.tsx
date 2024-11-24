@@ -14,6 +14,8 @@ export interface User {
   paymentStatus: string;
   createdAt: string;
   mockNumber: string;
+  mockType: string;
+  transactionId: string;
 }
 
 const TableAdmin = () => {
@@ -25,6 +27,8 @@ const TableAdmin = () => {
   const [currentPage, setCurrentPage] = useState<number>(1); // Current page number
   const [usersPerPage, setUsersPerPage] = useState<number>(10); // Users per page
   const [mockNumber, setMockNumber] = useState<string>(""); // State for mock number
+  const [mockType, setMockType] = useState<string>(""); // State for mock type
+  const [transactionId, setTransactionId] = useState<string>(""); // State for transaction ID
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -106,6 +110,8 @@ const TableAdmin = () => {
   const onViewDetails = (user: User) => {
     setSelectedUser(user);
     setMockNumber(user.mockNumber || ""); // Initialize mock number
+    setMockType(user.mockType || ""); // Initialize mock type with existing value
+    setTransactionId(user.transactionId || ""); // Initialize transaction ID with existing value
     setIsModalOpen(true);
     console.log("Selected User Mock Number:", user.mockNumber);
   };
@@ -253,6 +259,35 @@ const TableAdmin = () => {
                 id="mockNumber"
                 value={mockNumber}
                 onChange={(e) => setMockNumber(e.target.value)}
+                className="px-2 py-1 border rounded w-full"
+              />
+            </div>
+            <div className="mt-4">
+              <label htmlFor="mockType" className="block mb-2">
+                Mock Type:
+              </label>
+              <select
+                id="mockType"
+                value={mockType}
+                onChange={(e) => setMockType(e.target.value)}
+                className="px-2 py-1 border rounded w-full"
+              >
+                <option value="">Select Mock Type</option>
+                <option value="IELTS">IELTS</option>
+                <option value="GRE">GRE</option>
+                <option value="TOFEL">TOFEL</option>
+                <option value="Pearson PTE">Pearson PTE</option>
+              </select>
+            </div>
+            <div className="mt-4">
+              <label htmlFor="transactionId" className="block mb-2">
+                Transaction ID:
+              </label>
+              <input
+                type="text"
+                id="transactionId"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
                 className="px-2 py-1 border rounded w-full"
               />
             </div>

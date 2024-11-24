@@ -27,6 +27,7 @@ function AvailableSchedulesPage() {
   } | null>(null);
   const [testTypeFilter, setTestTypeFilter] = useState<string>("");
   const [dateSortOrder, setDateSortOrder] = useState<string>("ascending");
+  const [dateFilter, setDateFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchSchedules();
@@ -59,10 +60,32 @@ function AvailableSchedulesPage() {
   };
 
   const filteredSchedules = React.useMemo(() => {
+    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
     return schedules.filter((schedule: any) => {
-      return testTypeFilter ? schedule.testType === testTypeFilter : true;
+      const isTestTypeMatch = testTypeFilter
+        ? schedule.testType === testTypeFilter
+        : true;
+      let isDateMatch = true;
+
+      switch (dateFilter) {
+        case "completed":
+          isDateMatch = schedule.startDate < today;
+          break;
+        case "upcoming":
+          isDateMatch = schedule.startDate > today;
+          break;
+        case "today":
+          isDateMatch = schedule.startDate === today;
+          break;
+        case "all":
+        default:
+          isDateMatch = true;
+          break;
+      }
+
+      return isTestTypeMatch && isDateMatch;
     });
-  }, [schedules, testTypeFilter]);
+  }, [schedules, testTypeFilter, dateFilter]);
 
   const sortedSchedules = React.useMemo(() => {
     let sortableSchedules = [...filteredSchedules];
@@ -95,7 +118,8 @@ function AvailableSchedulesPage() {
         >
           <option value="">All Test Types</option>
           <option value="GRE">GRE</option>
-          <option value="IELTS">IELTS</option>
+          <option value="IELTS Computer Based">IELTS</option>
+          <option value="IELTS Paper Based">IELTS Academic</option>
           <option value="TOEFL">TOEFL</option>
           <option value="PTE">PTE</option>
         </select>
@@ -106,6 +130,16 @@ function AvailableSchedulesPage() {
         >
           <option value="ascending">Start Date Ascending</option>
           <option value="descending">Start Date Descending</option>
+        </select>
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="px-2 py-1 border rounded"
+        >
+          <option value="all">All Schedules</option>
+          <option value="completed">Completed Schedule</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="today">Today</option>
         </select>
       </div>
       <table className="table-auto w-full border-collapse">

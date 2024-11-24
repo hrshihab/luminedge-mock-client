@@ -58,7 +58,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
     },
     {
       _id: "67337c880794d577cd982b78",
-      name: "TOEFL",
+      name: "TOFEL",
       image: "https://i.ibb.co.com/vjyL3QC/toefl.webp",
     },
   ];
@@ -66,8 +66,10 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
   // Function to get course name by bookingId
   const getCourseNameByBookingId = (bookingId: string) => {
     const course = courses.find((course) => course._id === bookingId);
+
     return course ? course.name : "Unknown Course";
   };
+  const courseName = getCourseNameByBookingId(params.bookingId);
 
   // Function to fetch schedule data based on selected date
   const fetchScheduleData = async (selectedDate: Date) => {
@@ -77,6 +79,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
         `http://localhost:5000/api/v1/schedule/${formattedDate}/${params.bookingId}`
       );
       setScheduleData(response.data.schedules);
+      console.log(response.data.schedules);
     } catch (error) {
       console.error("Error fetching schedule data:", error);
     }
@@ -125,6 +128,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
 
     if (selectedSlotId) {
       try {
+        console.log(selectedSlotId);
         const response = await axios.post(
           `http://localhost:5000/api/v1/user/book-slot`,
           {
@@ -132,6 +136,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
             userId,
             scheduleId,
             status: "active",
+            name: courseName,
             testType,
             testSystem,
           }
@@ -144,8 +149,6 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
       }
     }
   };
-
-  const courseName = getCourseNameByBookingId(params.bookingId);
 
   // Determine if the dropdowns should be enabled
   const isDropdownEnabled = courseName === "IELTS";
