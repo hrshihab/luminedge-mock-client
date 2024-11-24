@@ -2,8 +2,16 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { FiDownload } from "react-icons/fi"; // Download icon
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import Link from "next/link";
+import "jspdf-autotable";
+
+// Extend jsPDF type to include autoTable
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: any) => void;
+  }
+}
 
 // Define a type for the schedule
 type Schedule = {
@@ -33,10 +41,31 @@ function BookingRequestsPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [userDetails, setUserDetails] = useState<{
-    [key: string]: { name: string; email: string; contactNo?: string };
+    [key: string]: {
+      name: string;
+      email: string;
+      contactNo?: string;
+      attendance?: string;
+      status?: string;
+      bookingDate?: string;
+    };
   }>({});
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
-  const [attendance, setAttendance] = useState<string>("");
+  const [attendanceValues, setAttendanceValues] = useState<{
+    [key: string]: string;
+  }>({});
+  const [statusValues, setStatusValues] = useState<{ [key: string]: string }>(
+    {}
+  );
+  const [selectBookings, setSelectBookings] = useState<{
+    [key: string]: {
+      status: string;
+      attendance?: string;
+    };
+  }>({});
+  const [isDownloadPreviewOpen, setIsDownloadPreviewOpen] =
+    useState<boolean>(false);
+  const [bookingToDownload, setBookingToDownload] = useState<any | null>(null);
 
   // Extract unique test names for the dropdown
   const testNames = Array.from(
@@ -53,6 +82,7 @@ function BookingRequestsPage() {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/bookings`
       );
       const data = await response.json();
+      console.log(data);
       const uniqueBookings = aggregateBookings(data.bookings);
       setBookings(uniqueBookings);
     } catch (error) {
@@ -108,8 +138,12 @@ function BookingRequestsPage() {
     setDateFilter(e.target.value);
   }
 
-  function handleDownloadClick() {
-    setIsPrintModalOpen(true);
+  function handleDownloadClick(booking: any) {
+    setBookingToDownload(booking);
+    // Fetch user data for the selected booking before opening the preview
+    Promise.all(booking.userIds.map(fetchUserData)).then(() => {
+      setIsDownloadPreviewOpen(true);
+    });
   }
 
   function handlePrint() {
@@ -140,10 +174,10 @@ function BookingRequestsPage() {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`
       );
       const data = await response.json();
-      const { name, email } = data.user;
+      const { name, email, contactNo } = data.user;
       setUserDetails((prev) => ({
         ...prev,
-        [userId]: { name, email },
+        [userId]: { name, email, contactNo },
       }));
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -159,12 +193,16 @@ function BookingRequestsPage() {
   function closeModal() {
     setIsModalOpen(false);
     setSelectedBooking(null);
-    setAttendance("");
   }
 
-  async function handleAccept(userId: string) {
+  async function handleSubmit(
+    userId: string,
+    attendance: string,
+    status: string
+  ) {
     try {
-      console.log(selectedBooking);
+      // Define or initialize status
+
       // Update booking status and attendance
       await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/bookings/${selectedBooking.scheduleId}`,
@@ -172,40 +210,27 @@ function BookingRequestsPage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            status: "accepted",
+            status,
             attendance,
             userId,
           }),
         }
       );
 
+      // Send notification
+      // await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/notifications/send`, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     userId,
+      //     message: "Your booking has been accepted.",
+      //   }),
+      // });
+
       toast.success("User accepted and notified!");
     } catch (error) {
       console.error("Error accepting user:", error);
       toast.error("Failed to accept user.");
-    }
-  }
-
-  async function handleReject(userId: string) {
-    try {
-      // Update booking status and attendance
-      await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/bookings/${selectedBooking.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status: "rejected",
-            attendance: "absent",
-            userId,
-          }),
-        }
-      );
-
-      toast.success("User rejected.");
-    } catch (error) {
-      console.error("Error rejecting user:", error);
-      toast.error("Failed to reject user.");
     }
   }
 
@@ -229,54 +254,56 @@ function BookingRequestsPage() {
       }
     });
 
-  function downloadBookingPDF(booking: any) {
-    const doc = new jsPDF();
-    doc.text("Booking Details", 10, 10);
-    booking.userIds.forEach((userId: string, index: number) => {
-      const user = userDetails[userId];
-      if (user) {
-        doc.text(`Name: ${user.name}`, 10, 20 + index * 20);
-        doc.text(`Email: ${user.email}`, 10, 30 + index * 20);
-        doc.text(`Phone: ${user?.contactNo || "N/A"}`, 10, 40 + index * 20);
-        doc.text(
-          `Slot: ${booking.startTime} - ${booking.endTime} (Slot: ${booking.slotId})`,
-          10,
-          50 + index * 20
-        );
-      }
-    });
-    doc.save(`booking_${booking.bookingDate}_${booking.slotId}.pdf`);
-  }
+  function confirmDownload() {
+    if (bookingToDownload) {
+      const doc = new jsPDF();
 
-  async function handleSubmit(userId: string) {
-    try {
-      // Logic to determine if the user was accepted or rejected
-      const status = attendance ? "accepted" : "rejected"; // Example logic
-      await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/bookings/${selectedBooking.scheduleId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status,
-            attendance, // Use the selected attendance
-            userId,
-          }),
-        }
+      // Add title
+      doc.setFontSize(18);
+      doc.text("Booking Details", 10, 10);
+
+      // Add metadata (date and schedule time)
+      doc.setFontSize(12);
+      doc.text(`Test Name: ${bookingToDownload.name}`, 10, 20);
+      doc.text(`Date: ${bookingToDownload.bookingDate}`, 10, 25);
+      doc.text(
+        `Schedule Time: ${bookingToDownload.startTime} - ${bookingToDownload.endTime}`,
+        10,
+        30
       );
 
-      toast.success("User status updated!");
-    } catch (error) {
-      console.error("Error updating user status:", error);
-      toast.error("Failed to update user status.");
+      // Prepare table data
+      const tableData = bookingToDownload.userIds.map((userId: string) => {
+        const user = userDetails[userId];
+        return [
+          user?.name || "N/A",
+          user?.email || "N/A",
+          user?.contactNo || "N/A",
+        ];
+      });
+
+      // Add table using autoTable plugin
+      doc.autoTable({
+        head: [["User Name", "Email", "Phone"]], // Table headers
+        body: tableData, // Table data
+        startY: 40, // Positioning the table below the metadata
+        styles: { fontSize: 10, cellPadding: 4 },
+        headStyles: { fillColor: [220, 220, 220], textColor: 0 },
+      });
+
+      // Save the PDF
+      doc.save(
+        `booking_${bookingToDownload.bookingDate}_${bookingToDownload.slotId}.pdf`
+      );
     }
+    setIsDownloadPreviewOpen(false);
   }
 
   return (
-    <div>
+    <div className="px-4">
       <h1 className="text-2xl font-bold mb-4">Booking Requests</h1>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-start gap-5 items-center mb-4">
         <select
           value={testNameFilter}
           onChange={handleTestNameFilterChange}
@@ -302,21 +329,6 @@ function BookingRequestsPage() {
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
         </select>
-        <select
-          value={scheduleType}
-          onChange={handleScheduleTypeChange}
-          className="px-2 py-1 border rounded"
-        >
-          <option value="current">Current</option>
-          <option value="past">Past</option>
-          <option value="upcoming">Upcoming</option>
-        </select>
-        <button
-          onClick={handleDownloadClick}
-          className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          <FiDownload className="inline-block mr-1" /> Download
-        </button>
       </div>
 
       <table className="table-auto w-full border-collapse">
@@ -325,7 +337,6 @@ function BookingRequestsPage() {
             <th className="px-4 py-2 text-left">Name</th>
             <th className="px-4 py-2 text-left">Test Name</th>
             <th className="px-4 py-2 text-left">Booking Date</th>
-            <th className="px-4 py-2 text-left">Status</th>
             <th className="px-4 py-2 text-left">Slot</th>
             <th className="px-4 py-2 text-left">User Count</th>
             <th className="px-4 py-2 text-left">Actions</th>
@@ -341,14 +352,13 @@ function BookingRequestsPage() {
 
               <td className="px-4 py-2">{booking.testType}</td>
               <td className="px-4 py-2">{booking.bookingDate}</td>
-              <td className="px-4 py-2">{booking.status}</td>
               <td className="px-4 py-2">
                 {booking.startTime} - {booking.endTime} (Slot: {booking.slotId})
               </td>
               <td className="px-4 py-2">{booking.userIds.length}</td>
               <td className="px-4 py-2">
                 <button
-                  onClick={() => downloadBookingPDF(booking)}
+                  onClick={() => handleDownloadClick(booking)}
                   className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
                 >
                   Download
@@ -366,7 +376,7 @@ function BookingRequestsPage() {
       </table>
 
       {isModalOpen && selectedBooking && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-4 rounded shadow-lg relative">
             <button
               onClick={closeModal}
@@ -394,12 +404,20 @@ function BookingRequestsPage() {
                     <td className="px-4 py-2">
                       {userDetails[userId]?.email || "Loading..."}
                     </td>
-                    <td className="px-4 py-2">{/* Request Date */}</td>
+                    <td className="px-4 py-2">
+                      {/* Request Date */}
+                      {selectedBooking.bookingDate || "Loading..."}
+                    </td>
                     <td className="px-4 py-2">
                       <select
                         className="px-2 py-1 border rounded"
-                        value={attendance}
-                        onChange={(e) => setAttendance(e.target.value)}
+                        value={selectBookings[userId]?.attendance}
+                        onChange={(e) =>
+                          setAttendanceValues((prev) => ({
+                            ...prev,
+                            [userId]: e.target.value,
+                          }))
+                        }
                       >
                         <option value="" disabled>
                           Select Attendance
@@ -409,27 +427,36 @@ function BookingRequestsPage() {
                       </select>
                     </td>
                     <td className="px-4 py-2">
+                      <select
+                        className="px-2 py-1 border rounded"
+                        value={selectBookings[userId]?.status}
+                        onChange={(e) =>
+                          setStatusValues((prev) => ({
+                            ...prev,
+                            [userId]: e.target.value,
+                          }))
+                        }
+                      >
+                        <option value="" disabled>
+                          Make Confirmation
+                        </option>
+                        <option value="accept">Accept</option>
+                        <option value="reject">Reject</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-2">
                       <button
-                        onClick={() => handleAccept(userId)}
+                        onClick={() =>
+                          handleSubmit(
+                            userId,
+                            attendanceValues[userId],
+                            statusValues[userId]
+                          )
+                        }
                         className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 mr-2"
                         style={{
                           display: selectedBooking ? "inline-block" : "none",
                         }}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleReject(userId)}
-                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                        style={{
-                          display: selectedBooking ? "inline-block" : "none",
-                        }}
-                      >
-                        Reject
-                      </button>
-                      <button
-                        onClick={() => handleSubmit(userId)}
-                        className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                       >
                         Submit
                       </button>
@@ -518,6 +545,61 @@ function BookingRequestsPage() {
               className="mt-4 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
             >
               Print
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isDownloadPreviewOpen && bookingToDownload && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-4 rounded shadow-lg relative">
+            <button
+              onClick={() => setIsDownloadPreviewOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold mb-4">Download Preview</h2>
+            <h4 className="font-bold">{bookingToDownload.name}</h4>
+            <h3 className="text-lg text-amber-600">
+              <strong>Date : {bookingToDownload.bookingDate}</strong>
+            </h3>
+            <h3 className="text-lg font-bold">
+              Schedule Time :{" "}
+              <span style={{ color: "blue" }}>
+                {bookingToDownload.startTime.slice(0, 5)} -{" "}
+                {bookingToDownload.endTime.slice(0, 5)}
+              </span>
+            </h3>
+            <table className="table-auto w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 text-left">User Name</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Phone</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookingToDownload.userIds.map((userId: string) => (
+                  <tr key={userId} className="border-b">
+                    <td className="px-4 py-2">
+                      {userDetails[userId]?.name || "Loading..."}
+                    </td>
+                    <td className="px-4 py-2">
+                      {userDetails[userId]?.email || "Loading..."}
+                    </td>
+                    <td className="px-4 py-2">
+                      {userDetails[userId]?.contactNo || "Loading..."}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button
+              onClick={confirmDownload}
+              className="mt-4 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              Confirm Download
             </button>
           </div>
         </div>

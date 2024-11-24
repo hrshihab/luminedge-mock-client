@@ -15,7 +15,8 @@ export interface User {
   createdAt: string;
   mockNumber: string;
   mockType: string;
-  transactionId: string;
+  transactionId?: string;
+  isDeleted: boolean;
 }
 
 const TableAdmin = () => {
@@ -29,6 +30,7 @@ const TableAdmin = () => {
   const [mockNumber, setMockNumber] = useState<string>(""); // State for mock number
   const [mockType, setMockType] = useState<string>(""); // State for mock type
   const [transactionId, setTransactionId] = useState<string>(""); // State for transaction ID
+  const [actionFilter, setActionFilter] = useState<string>("all"); // Holds the selected action filter
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -50,14 +52,24 @@ const TableAdmin = () => {
     fetchUsers();
   }, []);
 
-  // Filter users by status
+  // Filter users by status and action
   useEffect(() => {
-    if (statusFilter === "all") {
-      setFilteredUsers(users);
-    } else {
-      setFilteredUsers(users.filter((user) => user.status === statusFilter));
+    let filtered = users;
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((user) => user.status === statusFilter);
     }
-  }, [statusFilter, users]);
+
+    // Filter by action
+    if (actionFilter === "blocked") {
+      filtered = filtered.filter((user) => user.isDeleted);
+    } else if (actionFilter === "unblocked") {
+      filtered = filtered.filter((user) => !user.isDeleted);
+    }
+
+    setFilteredUsers(filtered);
+  }, [statusFilter, actionFilter, users]);
 
   // Calculate pagination
   const indexOfLastUser = currentPage * usersPerPage;
@@ -66,7 +78,7 @@ const TableAdmin = () => {
 
   // Function to change user status
   const onChangeStatus = async (userId: string, newStatus: string) => {
-    console.log(userId, newStatus);
+    console.log("here", transactionId);
     try {
       await axios.put(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/status/${userId}`,
@@ -89,10 +101,11 @@ const TableAdmin = () => {
   // Function to update user data with mock number
   const onUpdateUser = async () => {
     if (!selectedUser) return;
-    console.log("Mock Number before update:", mockNumber);
+    console.log("Mock Number before update:", transactionId);
+    console.log("mocktyep", mockType);
 
     try {
-      await updateMockNumber(mockNumber, selectedUser);
+      await updateMockNumber(mockNumber, selectedUser, transactionId, mockType);
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user._id === selectedUser._id ? { ...user, mockNumber } : user
@@ -116,36 +129,73 @@ const TableAdmin = () => {
     console.log("Selected User Mock Number:", user.mockNumber);
   };
 
-  // Function to download user data
-  const onDownload = (userId: string) => {
-    console.log("Download data for user:", userId);
-    toast.success("Download started");
-  };
-
   // Function to close the modal
   const closeModal = () => {
     setSelectedUser(null);
     setIsModalOpen(false);
   };
 
+  // Add a function to block/unblock user
+  const onToggleBlockUser = async (userId: string) => {
+    const user = users.find((u) => u._id === userId);
+    if (!user) return;
+
+    const newStatus = user.isDeleted ? "active" : "blocked"; // Toggle status based on isDeleted
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/block/${userId}`,
+        {
+          isDeleted: !user.isDeleted, // Toggle isDeleted status
+        }
+      );
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u._id === userId ? { ...u, isDeleted: !u.isDeleted } : u
+        )
+      );
+      toast.success(`User ${newStatus} successfully`);
+    } catch (error) {
+      console.error("Error toggling user block status:", error);
+      toast.error("Failed to toggle user block status");
+    }
+  };
+
   return (
     <>
-      {/* Filter by Status */}
-      <div className="mb-4">
-        <label htmlFor="statusFilter" className="mr-2">
-          Filter by Status:
-        </label>
-        <select
-          id="statusFilter"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-2 py-1 border rounded"
-        >
-          <option value="all">All</option>
-          <option value="active">Active</option>
-          <option value="checked">Checked</option>
-          <option value="completed">Completed</option>
-        </select>
+      <div className="flex gap-4 py-4">
+        {/* Filter by Status and Action */}
+        <div className="mb-4">
+          <label htmlFor="statusFilter" className="mr-2">
+            Filter by Status:
+          </label>
+          <select
+            id="statusFilter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-2 py-1 border rounded"
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="checked">Checked</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="actionFilter" className="mr-2">
+            Active:
+          </label>
+          <select
+            id="actionFilter"
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+            className="px-2 py-1 border rounded"
+          >
+            <option value="all">All</option>
+            <option value="blocked">Blocked</option>
+            <option value="unblocked">Unblocked</option>
+          </select>
+        </div>
       </div>
 
       <table className="table-auto w-full border-collapse">
@@ -177,14 +227,16 @@ const TableAdmin = () => {
               </td>
               <td className="px-4 py-2 flex space-x-2">
                 <button
-                  onClick={() => onDownload(user._id)}
-                  className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 flex items-center"
+                  onClick={() => onToggleBlockUser(user._id)}
+                  className={`px-4 py-1 w-24 text-center ${
+                    user.isDeleted ? "bg-red-500" : "bg-yellow-500"
+                  } text-white rounded hover:bg-opacity-80 flex items-center justify-center`}
                 >
-                  <FiDownload className="mr-1" /> Download
+                  {user.isDeleted ? "Unblock" : "Block"}
                 </button>
                 <button
                   onClick={() => onViewDetails(user)}
-                  className="px-4  py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
+                  className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center justify-center"
                 >
                   <AiOutlineEye className="mr-2" /> View
                 </button>
@@ -242,14 +294,18 @@ const TableAdmin = () => {
               <strong>Email:</strong> {selectedUser.email}
             </p>
             <p>
+              <strong>Mock Type:</strong> {selectedUser.mockType}
+            </p>
+            <p>
               <strong>Status:</strong> {selectedUser.status}
             </p>
             <p>
-              <strong>Payment Status:</strong> {selectedUser.paymentStatus}
+              <strong>Payment :</strong> {selectedUser.transactionId}
             </p>
             <p>
               <strong>Created At:</strong> {selectedUser.createdAt}
             </p>
+
             <div className="mt-4">
               <label htmlFor="mockNumber" className="block mb-2">
                 Mock Number:

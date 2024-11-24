@@ -4,8 +4,11 @@ import { User } from "@/components/tableAdmin";
 
 export const updateMockNumber = async (
   mockNumber: string,
-  selectedUser: User
+  selectedUser: User,
+  transactionId : string,
+  mockType:string
 ) => {
+  console.log('mock', mockType);
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/update/${selectedUser._id}/${mockNumber}`,
     {
@@ -13,6 +16,7 @@ export const updateMockNumber = async (
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ transactionId,mockType }),
       cache: "no-store",
     }
   );
