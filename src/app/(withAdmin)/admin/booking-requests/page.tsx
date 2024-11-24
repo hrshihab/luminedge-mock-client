@@ -82,8 +82,9 @@ function BookingRequestsPage() {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/bookings`
       );
       const data = await response.json();
-      console.log(data);
+      console.log("Fetched bookings:", data.bookings); // Log fetched data
       const uniqueBookings = aggregateBookings(data.bookings);
+      console.log("Aggregated bookings:", uniqueBookings); // Log aggregated data
       setBookings(uniqueBookings);
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -94,14 +95,16 @@ function BookingRequestsPage() {
     const bookingMap: { [key: string]: any } = {};
 
     bookings.forEach((booking) => {
-      const key = `${booking.bookingDate}-${booking.slotId}`;
+      const key = `${booking.scheduleId}-${booking.slotId}`;
       if (!bookingMap[key]) {
         bookingMap[key] = {
           ...booking,
           userIds: new Set([booking.userId]), // Use a Set to store unique user IDs
+          userCount: 1, // Initialize user count
         };
       } else {
         bookingMap[key].userIds.add(booking.userId);
+        bookingMap[key].userCount += 1; // Increment user count
       }
     });
 
@@ -186,6 +189,19 @@ function BookingRequestsPage() {
 
   function seeBookingDetails(booking: any) {
     setSelectedBooking(booking);
+    console.log(booking);
+    // Initialize selectBookings for each user with existing values if available
+    const initialSelectBookings = booking.userIds.reduce(
+      (acc: any, userId: string) => {
+        acc[userId] = {
+          attendance: attendanceValues[userId] || "", // Use existing value or empty
+          status: statusValues[userId] || "", // Use existing value or empty
+        };
+        return acc;
+      },
+      {}
+    );
+    setSelectBookings(initialSelectBookings);
     booking.userIds.forEach(fetchUserData);
     setIsModalOpen(true);
   }
@@ -197,12 +213,17 @@ function BookingRequestsPage() {
 
   async function handleSubmit(
     userId: string,
-    attendance: string,
-    status: string
+    attendance: string | undefined,
+    status: string | undefined
   ) {
     try {
-      // Define or initialize status
+      // Check if attendance and status are defined
+      if (!attendance || !status) {
+        toast.error("Attendance and status must be defined.");
+        return; // Exit the function if either value is undefined
+      }
 
+      console.log(attendance, status);
       // Update booking status and attendance
       await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/bookings/${selectedBooking.scheduleId}`,
@@ -405,19 +426,26 @@ function BookingRequestsPage() {
                       {userDetails[userId]?.email || "Loading..."}
                     </td>
                     <td className="px-4 py-2">
-                      {/* Request Date */}
                       {selectedBooking.bookingDate || "Loading..."}
                     </td>
                     <td className="px-4 py-2">
                       <select
                         className="px-2 py-1 border rounded"
-                        value={selectBookings[userId]?.attendance}
-                        onChange={(e) =>
+                        value={selectedBooking?.attendance || ""}
+                        onChange={(e) => {
+                          const newAttendance = e.target.value;
                           setAttendanceValues((prev) => ({
                             ...prev,
-                            [userId]: e.target.value,
-                          }))
-                        }
+                            [userId]: newAttendance,
+                          }));
+                          setSelectBookings((prev) => ({
+                            ...prev,
+                            [userId]: {
+                              ...prev[userId],
+                              attendance: newAttendance,
+                            },
+                          }));
+                        }}
                       >
                         <option value="" disabled>
                           Select Attendance
@@ -429,13 +457,18 @@ function BookingRequestsPage() {
                     <td className="px-4 py-2">
                       <select
                         className="px-2 py-1 border rounded"
-                        value={selectBookings[userId]?.status}
-                        onChange={(e) =>
+                        value={selectedBooking?.status || ""}
+                        onChange={(e) => {
+                          const newStatus = e.target.value;
                           setStatusValues((prev) => ({
                             ...prev,
-                            [userId]: e.target.value,
-                          }))
-                        }
+                            [userId]: newStatus,
+                          }));
+                          setSelectBookings((prev) => ({
+                            ...prev,
+                            [userId]: { ...prev[userId], status: newStatus },
+                          }));
+                        }}
                       >
                         <option value="" disabled>
                           Make Confirmation
@@ -453,10 +486,7 @@ function BookingRequestsPage() {
                             statusValues[userId]
                           )
                         }
-                        className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 mr-2"
-                        style={{
-                          display: selectedBooking ? "inline-block" : "none",
-                        }}
+                        className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                       >
                         Submit
                       </button>
