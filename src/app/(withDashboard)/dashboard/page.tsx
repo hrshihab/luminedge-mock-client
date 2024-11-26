@@ -2,31 +2,21 @@
 import { getUserIdFromToken } from "@/app/helpers/jwt";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { RxAvatar } from "react-icons/rx";
-import { FaArrowDown } from "react-icons/fa";
+
 import Table from "@/components/table";
 import Link from "next/link";
-import { useRouter } from "next/dist/client/router";
 
 const DashboardPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
 
-  //const router = useRouter();
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Awaiting user ID if getUserIdFromToken is asynchronous
         const userIdFromToken = await getUserIdFromToken();
-        // if (!userIdFromToken) {
-        //   router.push("/login");
-        // }
 
         if (userIdFromToken) {
           setUserId(userIdFromToken.userId);
-
-          // Fetching user data based on the user ID
           const response = await axios.get(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userIdFromToken.userId}`
           );
@@ -34,69 +24,70 @@ const DashboardPage = () => {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        setUserData(null); // Optional: Set a fallback value on error
+        setUserData(null);
       }
     };
 
     fetchData();
-  }, []); // Runs once on mount
-
-  console.log(userData);
+  }, []);
 
   if (!userData || !userData.user) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col md:flex-row mx-auto gap-4">
-      <div className="w-full md:w-[120%]">
-        <h1 className="text-2xl text-start my-4"> Dashboard </h1>
-        <div className="flex flex-col p-4 bg-[#ffcb1e] rounded-box">
-          <h1 className="text-2xl text-gray-50 font-bold mb-2">
-            Welcome {userData.user.name}!
-          </h1>
-          <p className="text-gray-50 text-sm mb-2">
-            You have completed {userData.user.completedTests} tests this week!{" "}
-            <br />
-            Start a new goal and improve your result.
+    <div className="flex flex-col mx-auto gap-6 p-4 max-w-7xl">
+      <h1 className="text-3xl font-semibold text-gray-800">Dashboard</h1>
+
+      {/* Welcome Card */}
+      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 rounded-lg shadow-md text-white">
+        <h2 className="text-2xl font-bold mb-2">
+          Welcome, {userData.user.name}!
+        </h2>
+        <p className="text-sm mb-4">
+          You have completed{" "}
+          <span className="font-semibold">{userData.user.completedTests}</span>{" "}
+          tests this week. Start a new goal to improve your results!
+        </p>
+        <Link href="/dashboard/courses">
+          <button className="bg-white text-black font-medium rounded-md px-4 py-2 hover:bg-gray-200 transition-all">
+            Book Now
+          </button>
+        </Link>
+      </div>
+
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow-md text-center">
+          <h3 className="text-gray-600 font-medium">Purchased</h3>
+          <p className="text-2xl font-bold text-gray-800">
+            {userData.user.totalMock}
           </p>
-          <Link href="/dashboard/courses">
-            <button className="bg-black text-white rounded-md p-2 w-28 my-2">
-              Book Now
-            </button>
-          </Link>
         </div>
-        <div className="overflow-x-auto mt-4">
-          <h1 className="text-2xl text-start my-4">Exam Schedule</h1>
-          <Table userId={userId || ""} />
+        <div className="bg-white p-4 rounded-lg shadow-md text-center">
+          <h3 className="text-gray-600 font-medium">Booked</h3>
+          <p className="text-2xl font-bold text-yellow-500">
+            {userData.user.totalMock - userData.user.mock}
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md text-center">
+          <h3 className="text-gray-600 font-medium">Remaining</h3>
+          <p className="text-2xl font-bold text-green-500">
+            {userData.user.mock}
+          </p>
         </div>
       </div>
-      <div className="w-full md:w-[70%] rounded-box">
-        <div className="flex justify-end items-center gap-4 mr-8">
-          <RxAvatar className="text-4xl" />
-          <h1 className="text-xl text-start text-yellow-400 font-semibold my-4">
-            {userData.user.name}
-          </h1>
-          <FaArrowDown className="text-xl text-yellow-400" />
-        </div>
-        <div className="stats shadow flex justify-end">
-          <div className="stat place-items-center">
-            <div className="stat-title">Purchased Mock</div>
-            <div className="stat-value">{userData.user.totalMock}</div>
-          </div>
 
-          <div className="stat place-items-center">
-            <div className="stat-title">Attended</div>
-            <div className="stat-value text-secondary">
-              {userData.user.totalMock - userData.user.mock}
-            </div>
-          </div>
-
-          <div className="stat place-items-center">
-            <div className="stat-title">Left</div>
-            <div className="stat-value">{userData.user.mock}</div>
-          </div>
-        </div>
+      {/* Exam Schedule Section */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          Exam Schedule
+        </h2>
+        <Table userId={userId || ""} />
       </div>
     </div>
   );

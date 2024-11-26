@@ -26,6 +26,8 @@ export const getUserIdFromToken = () => {
     return null; // If running server-side, return null (or handle as needed)
   }
 
+  console.log("getUserIdFromToken");
+
   // Access the localStorage on the client side
   const accessToken = localStorage.getItem("accessToken");
 

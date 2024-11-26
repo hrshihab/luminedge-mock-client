@@ -9,11 +9,7 @@ const HomePage = () => {
     router.push("/login"); // Automatically redirects to the sign-in page
   }, [router]);
 
-  return (
-    <div>
-      <h1 className="text-4xl text-center mt-10">Welcome To Home Page</h1>
-    </div>
-  );
+  return null;
 };
 
 export default HomePage;

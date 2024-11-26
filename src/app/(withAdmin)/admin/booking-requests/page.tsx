@@ -38,7 +38,11 @@ function BookingRequestsPage() {
   >("current");
   const [testNameFilter, setTestNameFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [totalBookings, setTotalBookings] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [newAttendanceValues, setNewAttendanceValues] = useState<{
+    [key: string]: string;
+  }>({});
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [userDetails, setUserDetails] = useState<{
     [key: string]: {
@@ -76,12 +80,32 @@ function BookingRequestsPage() {
     fetchBookings();
   }, []);
 
+  useEffect(() => {
+    if (selectedBooking) {
+      // Ensure attendanceValues are populated when a booking is selected
+      const attendanceValues = selectedBooking.userIds.reduce(
+        (acc: Record<string, string>, userId: string) => {
+          const userBooking = totalBookings.find(
+            (b) =>
+              b.userId === userId && b.scheduleId === selectedBooking.scheduleId
+          );
+          acc[userId] = userBooking?.attendance || "N/A";
+          return acc;
+        },
+        {}
+      );
+      setAttendanceValues(attendanceValues);
+      console.log("Attendance values set:", attendanceValues); // Debugging line
+    }
+  }, [selectedBooking, totalBookings]);
+
   async function fetchBookings() {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/bookings`
       );
       const data = await response.json();
+      setTotalBookings(data.bookings);
       console.log("Fetched bookings:", data.bookings); // Log fetched data
       const uniqueBookings = aggregateBookings(data.bookings);
       console.log("Aggregated bookings:", uniqueBookings); // Log aggregated data
@@ -189,18 +213,34 @@ function BookingRequestsPage() {
 
   function seeBookingDetails(booking: any) {
     setSelectedBooking(booking);
-    console.log(booking);
-    // Initialize selectBookings for each user with existing values if available
-    const initialSelectBookings = booking.userIds.reduce(
-      (acc: any, userId: string) => {
-        acc[userId] = {
-          attendance: attendanceValues[userId] || "", // Use existing value or empty
-          status: statusValues[userId] || "", // Use existing value or empty
-        };
+    //console.log(booking);
+
+    // Map attendance values from totalBookings data
+    const attendanceValues = booking.userIds.reduce(
+      (acc: Record<string, string>, userId: string) => {
+        const userBooking = totalBookings.find(
+          (b) => b.userId === userId && b.scheduleId === booking.scheduleId
+        );
+        acc[userId] = userBooking?.attendance || "N/A"; // Use attendance from totalBookings or "Not Found"
         return acc;
       },
       {}
     );
+
+    // Initialize selectBookings for each user with existing values if available
+    const initialSelectBookings = booking.userIds.reduce(
+      (acc: any, userId: string) => {
+        acc[userId] = {
+          attendance: attendanceValues[userId], // Use mapped attendance value
+          status: statusValues[userId] || "", // Use existing value or empty
+        };
+        //console.log(acc);
+        return acc;
+      },
+      {}
+    );
+    // console.log(attendanceValues);
+
     setSelectBookings(initialSelectBookings);
     booking.userIds.forEach(fetchUserData);
     setIsModalOpen(true);
@@ -211,19 +251,15 @@ function BookingRequestsPage() {
     setSelectedBooking(null);
   }
 
-  async function handleSubmit(
-    userId: string,
-    attendance: string | undefined,
-    status: string | undefined
-  ) {
+  async function handleSubmit(userId: string, attendance: string | undefined) {
     try {
       // Check if attendance and status are defined
-      if (!attendance || !status) {
+      if (!attendance) {
         toast.error("Attendance and status must be defined.");
         return; // Exit the function if either value is undefined
       }
 
-      console.log(attendance, status);
+      //console.log(attendance);
       // Update booking status and attendance
       await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/bookings/${selectedBooking.scheduleId}`,
@@ -231,7 +267,6 @@ function BookingRequestsPage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            status,
             attendance,
             userId,
           }),
@@ -248,7 +283,7 @@ function BookingRequestsPage() {
       //   }),
       // });
 
-      toast.success("User accepted and notified!");
+      toast.success("Attendance updated successfully!");
     } catch (error) {
       console.error("Error accepting user:", error);
       toast.error("Failed to accept user.");
@@ -364,13 +399,14 @@ function BookingRequestsPage() {
           </tr>
         </thead>
         <tbody>
-          {filteredBookings.map((booking) => (
+          {filteredBookings.map((booking, index) => (
             <tr
-              key={`${booking.bookingDate}-${booking.slotId}`}
+              key={`${booking.id || index}-${booking.bookingDate}-${
+                booking.slotId
+              }`}
               className="border-b"
             >
               <td className="px-4 py-2">{booking.name}</td>
-
               <td className="px-4 py-2">{booking.testType}</td>
               <td className="px-4 py-2">{booking.bookingDate}</td>
               <td className="px-4 py-2">
@@ -401,7 +437,7 @@ function BookingRequestsPage() {
           <div className="bg-white p-4 rounded shadow-lg relative">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="absolute top-2 mr-2 right-2 text-4xl font-bold text-gray-500 hover:text-red-700"
             >
               &times;
             </button>
@@ -413,86 +449,84 @@ function BookingRequestsPage() {
                   <th className="px-4 py-2 text-left">Email</th>
                   <th className="px-4 py-2 text-left">Request Date</th>
                   <th className="px-4 py-2 text-left">Attendance</th>
-                  <th className="px-4 py-2 text-left">Actions</th>
+                  {/* <th className="px-4 py-2 text-left">Actions</th> */}
                 </tr>
               </thead>
               <tbody>
-                {selectedBooking.userIds.map((userId: string) => (
-                  <tr key={userId} className="border-b">
-                    <td className="px-4 py-2">
-                      {userDetails[userId]?.name || "Loading..."}
-                    </td>
-                    <td className="px-4 py-2">
-                      {userDetails[userId]?.email || "Loading..."}
-                    </td>
-                    <td className="px-4 py-2">
-                      {selectedBooking.bookingDate || "Loading..."}
-                    </td>
-                    <td className="px-4 py-2">
-                      <select
-                        className="px-2 py-1 border rounded"
-                        value={selectedBooking?.attendance || ""}
-                        onChange={(e) => {
-                          const newAttendance = e.target.value;
-                          setAttendanceValues((prev) => ({
-                            ...prev,
-                            [userId]: newAttendance,
-                          }));
-                          setSelectBookings((prev) => ({
-                            ...prev,
-                            [userId]: {
-                              ...prev[userId],
-                              attendance: newAttendance,
-                            },
-                          }));
-                        }}
-                      >
-                        <option value="" disabled>
-                          Select Attendance
-                        </option>
-                        <option value="present">Present</option>
-                        <option value="absent">Absent</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2">
-                      <select
-                        className="px-2 py-1 border rounded"
-                        value={selectedBooking?.status || ""}
-                        onChange={(e) => {
-                          const newStatus = e.target.value;
-                          setStatusValues((prev) => ({
-                            ...prev,
-                            [userId]: newStatus,
-                          }));
-                          setSelectBookings((prev) => ({
-                            ...prev,
-                            [userId]: { ...prev[userId], status: newStatus },
-                          }));
-                        }}
-                      >
-                        <option value="" disabled>
-                          Make Confirmation
-                        </option>
-                        <option value="accept">Accept</option>
-                        <option value="reject">Reject</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2">
-                      <button
-                        onClick={() =>
-                          handleSubmit(
-                            userId,
-                            attendanceValues[userId],
-                            statusValues[userId]
-                          )
-                        }
-                        className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                      >
-                        Submit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {selectedBooking.userIds.map((userId: string) => {
+                  // console.log(
+                  //   `Rendering userId: ${userId}, Attendance: ${attendanceValues[userId]}`
+                  // ); // Debugging line
+                  return (
+                    <tr key={userId} className="border-b">
+                      <td className="px-4 py-2">
+                        {userDetails[userId]?.name || "Loading..."}
+                      </td>
+                      <td className="px-4 py-2">
+                        {userDetails[userId]?.email || "Loading..."}
+                      </td>
+                      <td className="px-4 py-2">
+                        {selectedBooking.bookingDate || "Loading..."}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        {attendanceValues[userId] === "present" ||
+                        attendanceValues[userId] === "absent" ? (
+                          <span>{attendanceValues[userId]}</span>
+                        ) : (
+                          <select
+                            className="px-2 py-1 border rounded"
+                            onChange={(e) => {
+                              const newAttendance = e.target.value;
+                              handleSubmit(userId, newAttendance);
+                            }}
+                          >
+                            {/* this is default value */}
+                            <option value="" disabled selected>
+                              Select Attendance
+                            </option>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                          </select>
+                        )}
+                      </td>
+
+                      {/* <td className="px-4 py-2">
+                        <select
+                          className="px-2 py-1 border rounded"
+                          value={selectedBooking?.status || ""}
+                          onChange={(e) => {
+                            const newStatus = e.target.value;
+                            setStatusValues((prev) => ({
+                              ...prev,
+                              [userId]: newStatus,
+                            }));
+                            setSelectBookings((prev) => ({
+                              ...prev,
+                              [userId]: { ...prev[userId], status: newStatus },
+                            }));
+                          }}
+                        >
+                          <option value="" disabled>
+                            Make Confirmation
+                          </option>
+                          <option value="accept">Accept</option>
+                          <option value="reject">Reject</option>
+                        </select>
+                      </td> */}
+                      {/* <td className="px-4 py-2">
+                        <button
+                          onClick={() =>
+                            handleSubmit(userId, attendanceValues[userId])
+                          }
+                          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          Submit
+                        </button>
+                      </td> */}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

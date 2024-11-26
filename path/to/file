@@ -1,0 +1,32 @@
+const getMe = () => {
+    const [userId, setUserId] = useState<string | null>(null);
+    const [userData, setUserData] = useState<any>(null);
+  
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const userIdFromToken = await getUserIdFromToken();
+          if (userIdFromToken) {
+            setUserId(userIdFromToken.userId);
+            const response = await axios.get(
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userIdFromToken.userId}`
+            );
+            setUserData(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          setUserData(null);
+        }
+      };
+  
+      fetchData();
+    }, []);
+  
+    console.log(userData);
+  
+    if (!userData || !userData.user) {
+      return <div>Loading...</div>;
+    }
+    
+    return userData.user;
+}; 

@@ -13,9 +13,11 @@ export interface User {
   status: string;
   paymentStatus: string;
   createdAt: string;
-  mockNumber: string;
-  mockType: string;
+  mock?: string;
+  mockType?: string;
   transactionId?: string;
+  totalMock?: number;
+
   isDeleted: boolean;
 }
 
@@ -27,7 +29,7 @@ const TableAdmin = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all"); // Holds the selected status filter
   const [currentPage, setCurrentPage] = useState<number>(1); // Current page number
   const [usersPerPage, setUsersPerPage] = useState<number>(10); // Users per page
-  const [mockNumber, setMockNumber] = useState<string>(""); // State for mock number
+  const [mock, setMock] = useState<string>(""); // State for mock number
   const [mockType, setMockType] = useState<string>(""); // State for mock type
   const [transactionId, setTransactionId] = useState<string>(""); // State for transaction ID
   const [actionFilter, setActionFilter] = useState<string>("all"); // Holds the selected action filter
@@ -105,10 +107,10 @@ const TableAdmin = () => {
     console.log("mocktyep", mockType);
 
     try {
-      await updateMockNumber(mockNumber, selectedUser, transactionId, mockType);
+      await updateMockNumber(mock, selectedUser, transactionId, mockType);
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user._id === selectedUser._id ? { ...user, mockNumber } : user
+          user._id === selectedUser._id ? { ...user, mock } : user
         )
       );
       toast.success("User data updated successfully");
@@ -122,11 +124,11 @@ const TableAdmin = () => {
   // Function to view user details (opens modal and sets selected user)
   const onViewDetails = (user: User) => {
     setSelectedUser(user);
-    setMockNumber(user.mockNumber || ""); // Initialize mock number
+    setMock(user.mock || ""); // Initialize mock number
     setMockType(user.mockType || ""); // Initialize mock type with existing value
     setTransactionId(user.transactionId || ""); // Initialize transaction ID with existing value
     setIsModalOpen(true);
-    console.log("Selected User Mock Number:", user.mockNumber);
+    console.log("Selected User Mock Number:", user.mock);
   };
 
   // Function to close the modal
@@ -294,27 +296,34 @@ const TableAdmin = () => {
               <strong>Email:</strong> {selectedUser.email}
             </p>
             <p>
-              <strong>Mock Type:</strong> {selectedUser.mockType}
+              <strong>Mock Type:</strong> {selectedUser?.mockType}
+            </p>
+            <p>
+              <strong>Purchased:</strong> {selectedUser?.totalMock}
+            </p>
+
+            <p>
+              <strong>Remaining:</strong> {selectedUser?.mock}
             </p>
             <p>
               <strong>Status:</strong> {selectedUser.status}
             </p>
             <p>
-              <strong>Payment :</strong> {selectedUser.transactionId}
+              <strong>Transaction ID :</strong> {selectedUser.transactionId}
             </p>
             <p>
               <strong>Created At:</strong> {selectedUser.createdAt}
             </p>
 
             <div className="mt-4">
-              <label htmlFor="mockNumber" className="block mb-2">
+              <label htmlFor="mock" className="block mb-2">
                 Mock Number:
               </label>
               <input
                 type="text"
-                id="mockNumber"
-                value={mockNumber}
-                onChange={(e) => setMockNumber(e.target.value)}
+                id="mock"
+                value={mock}
+                onChange={(e) => setMock(e.target.value)}
                 className="px-2 py-1 border rounded w-full"
               />
             </div>

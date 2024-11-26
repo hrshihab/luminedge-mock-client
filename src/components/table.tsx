@@ -3,6 +3,7 @@ import axios from "axios";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { AiOutlineEllipsis } from "react-icons/ai";
 
 interface Booking {
   _id: string;
@@ -46,6 +47,13 @@ const Table = ({ userId }: { userId: string }) => {
     }
   };
 
+  const isPast24Hours = (bookingDate: string, startTime: string): boolean => {
+    const bookingDateTime = new Date(`${bookingDate}T${startTime}`);
+    const currentTime = new Date();
+    const timeDifference = bookingDateTime.getTime() - currentTime.getTime();
+    return timeDifference <= 0 || timeDifference > 24 * 60 * 60 * 1000; // Check if it's past or more than 24 hours
+  };
+
   return (
     <table className="table">
       {/* head */}
@@ -67,23 +75,48 @@ const Table = ({ userId }: { userId: string }) => {
             <td>IELTS</td>
             <td>{booking.bookingDate}</td>
             <td>{booking.startTime.slice(0, 5)}</td>
-            <td>{booking.status}</td>
+            <td>{booking.status === "active" ? "Pending" : booking.status}</td>
 
             {/* Re-schedule Button */}
             <td>
-              <Link href={`/dashboard/courses`}>
-                <button
-                  disabled={booking.status !== "active"}
-                  onClick={() => onDeleteBooking(booking._id)} // Call delete function
-                  className={`px-4 py-2 rounded ${
-                    booking.status === "active"
-                      ? "bg-[#FACE39] text-gray-900 hover:bg-black hover:text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Re-schedule
-                </button>
-              </Link>
+              <button
+                disabled={
+                  booking.status !== "active" ||
+                  !isPast24Hours(booking.bookingDate, booking.startTime)
+                }
+                onClick={() => {
+                  toast((t) => (
+                    <div>
+                      <p className=" mb-2">
+                        Are you sure you want to delete this booking?
+                      </p>
+                      <button
+                        onClick={() => {
+                          onDeleteBooking(booking._id); // Call delete function on confirm
+                          toast.dismiss(t.id); // Dismiss the toast after action
+                        }}
+                        className="bg-green-500 hover:bg-green-700 MT mr-2 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ));
+                }}
+                className={`px-4 py-2 font-bold rounded ${
+                  booking.status === "active" &&
+                  isPast24Hours(booking.bookingDate, booking.startTime)
+                    ? "font-bold  text-xl text-gray-900 hover:bg-black hover:text-white"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                <AiOutlineEllipsis />
+              </button>
             </td>
           </tr>
         ))}

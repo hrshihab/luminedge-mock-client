@@ -63,6 +63,37 @@ export default function CreateSchedulePage() {
 
     const formattedData = formData.dates.map((date) => {
       const dateKey = date.format("YYYY-MM-DD");
+      let testType = "IELTS Paper Based"; // Default value
+      let name = ""; // Default name
+
+      // Determine testType and name based on courseId
+      switch (formData.courseId) {
+        case "67337c880794d577cd982b75": // IELTS Paper Based
+          testType = "Paper-Based";
+          name = "IELTS";
+          break;
+        case "6742b783d2f5950620f6df21": // IELTS Computer Based
+          testType = "Computer-Based";
+          formData.courseId = "67337c880794d577cd982b75";
+          name = "IELTS";
+          break;
+        case "67337c880794d577cd982b76": // Pearson PTE
+          testType = "Paper-Based"; // Adjust as needed
+          name = "Pearson PTE";
+          break;
+        case "67337c880794d577cd982b77": // GRE
+          testType = "Paper-Based"; // Adjust as needed
+          name = "GRE";
+          break;
+        case "67337c880794d577cd982b78": // TOEFL
+          testType = "Paper-Based"; // Adjust as needed
+          name = "TOEFL";
+          break;
+        default:
+          testType = "Unknown"; // Fallback value
+          name = "Unknown"; // Fallback value
+      }
+
       return {
         courseId: formData.courseId,
         startDate: dateKey,
@@ -73,8 +104,9 @@ export default function CreateSchedulePage() {
           endTime: `${slot.endTime}:00`,
           slot: slot.slot,
         })),
-        testSystem: "Paper-Based", // Assuming a default value, adjust as needed
-        testType: "IELTS Paper Based", // Assuming a default value, adjust as needed
+        name: name, // Updated name field
+        testSystem: "", // Updated testSystem field
+        testType: testType, // Updated testType field
         status: "Scheduled", // Assuming a default value, adjust as needed
       };
     });
@@ -114,7 +146,7 @@ export default function CreateSchedulePage() {
               Select a course
             </option>
             <option value="67337c880794d577cd982b75">IELTS Paper Based</option>
-            <option value="6742b783d2f5950620f6df21">
+            <option value="67337c880794d577cd982b75">
               IELTS Computer Based
             </option>
             <option value="67337c880794d577cd982b76">Pearson PTE</option>

@@ -12,10 +12,14 @@ import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/utils/actions/logout";
+import GetMe from "@/app/helpers/getme";
+import { RxAvatar } from "react-icons/rx";
+import { FaArrowDown } from "react-icons/fa";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const user = GetMe();
   //console.log(pathname);
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -174,6 +178,13 @@ const Sidebar = () => {
               <span className="inline">Logout</span>
             </button>
           </li>
+          <div className="flex items-center gap-4 ml-1 py-2 px-2    transition-colors duration-300">
+            <RxAvatar className="text-2xl " />
+            <h1 className="text-lg text-amber-400 font-semibold truncate">
+              {user && user.name}
+            </h1>
+            <FaArrowDown className="text-lg text-yellow-400" />
+          </div>
         </ul>
       </div>
     </div>

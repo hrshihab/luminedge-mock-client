@@ -145,6 +145,7 @@ function AvailableSchedulesPage() {
       <table className="table-auto w-full border-collapse">
         <thead>
           <tr className="bg-gray-200">
+            <th className="px-4 py-2 text-left">Name</th>
             <th className="px-4 py-2 text-left">Test Type</th>
             <th className="px-4 py-2 text-left">Start Date</th>
             <th className="px-4 py-2 text-left">Status</th>
@@ -155,6 +156,7 @@ function AvailableSchedulesPage() {
         <tbody>
           {currentSchedules.map((schedule: any) => (
             <tr key={schedule.id} className="border-b">
+              <td className="px-4 py-2">{schedule.name}</td>
               <td className="px-4 py-2">{schedule.testType}</td>
               <td className="px-4 py-2">{schedule.startDate}</td>
               <td className="px-4 py-2">{schedule.status}</td>
