@@ -49,6 +49,10 @@ function BookingRequestsPage() {
       name: string;
       email: string;
       contactNo?: string;
+      transactionId?: string;
+      passportNumber?: string;
+      totalMock?: number;
+      mock?: number;
       attendance?: string;
       status?: string;
       bookingDate?: string;
@@ -183,6 +187,11 @@ function BookingRequestsPage() {
         doc.text(`Email: ${user.email}`, 10, 30 + index * 20);
         doc.text(`Phone: ${user?.contactNo || "N/A"}`, 10, 40 + index * 20);
         doc.text(
+          `Transaction ID: ${user?.transactionId || "N/A"}`,
+          10,
+          50 + index * 20
+        );
+        doc.text(
           `Slot: ${selectedBooking.startTime} - ${selectedBooking.endTime} (Slot: ${selectedBooking.slotId})`,
           10,
           50 + index * 20
@@ -201,10 +210,26 @@ function BookingRequestsPage() {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`
       );
       const data = await response.json();
-      const { name, email, contactNo } = data.user;
+      const {
+        name,
+        email,
+        contactNo,
+        transactionId,
+        passportNumber,
+        totalMock,
+        mock,
+      } = data.user;
       setUserDetails((prev) => ({
         ...prev,
-        [userId]: { name, email, contactNo },
+        [userId]: {
+          name,
+          email,
+          contactNo,
+          transactionId,
+          passportNumber,
+          totalMock,
+          mock,
+        },
       }));
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -253,10 +278,12 @@ function BookingRequestsPage() {
 
   async function handleSubmit(userId: string, attendance: string | undefined) {
     try {
-      // Check if attendance and status are defined
-      if (!attendance) {
-        toast.error("Attendance and status must be defined.");
-        return; // Exit the function if either value is undefined
+      let status; // Declare a new variable for status
+
+      if (attendance === "present") {
+        status = "completed";
+      } else if (attendance === "absent") {
+        status = "missed";
       }
 
       //console.log(attendance);
@@ -268,6 +295,7 @@ function BookingRequestsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             attendance,
+            status,
             userId,
           }),
         }
@@ -335,15 +363,29 @@ function BookingRequestsPage() {
           user?.name || "N/A",
           user?.email || "N/A",
           user?.contactNo || "N/A",
+          user?.transactionId || "N/A",
+          user?.passportNumber || "N/A",
+          user?.totalMock || "N/A",
+          (user?.totalMock || 0) - (user?.mock || 0),
         ];
       });
 
       // Add table using autoTable plugin
       doc.autoTable({
-        head: [["User Name", "Email", "Phone"]], // Table headers
+        head: [
+          [
+            "User Name",
+            "Email",
+            "Phone",
+            "Transaction ID",
+            "Passport Number",
+            "Purchased",
+            "Attend",
+          ],
+        ], // Table headers
         body: tableData, // Table data
         startY: 40, // Positioning the table below the metadata
-        styles: { fontSize: 10, cellPadding: 4 },
+        styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [220, 220, 220], textColor: 0 },
       });
 
@@ -476,13 +518,13 @@ function BookingRequestsPage() {
                         ) : (
                           <select
                             className="px-2 py-1 border rounded"
+                            value={attendanceValues[userId] || ""}
                             onChange={(e) => {
                               const newAttendance = e.target.value;
                               handleSubmit(userId, newAttendance);
                             }}
                           >
-                            {/* this is default value */}
-                            <option value="" disabled selected>
+                            <option value="N/A" disabled selected>
                               Select Attendance
                             </option>
                             <option value="present">Present</option>

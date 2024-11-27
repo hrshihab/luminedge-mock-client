@@ -16,6 +16,7 @@ export type UserData = {
   phoneNumber: string;
   passportNumber: string;
   email: string;
+  transactionId: string;
   password: string;
   confirmPassword: string;
   terms: boolean;
@@ -25,6 +26,7 @@ export type formatData = {
   email: string;
   password: string;
   contactNo: string;
+  transactionId: string;
   passportNumber: string;
   mock: number;
   result: Array<any>;
@@ -59,13 +61,12 @@ const RegisterPage = () => {
         email: data.email,
         password: data.password,
         contactNo: data.phoneNumber,
+        transactionId: data.transactionId,
         passportNumber: data.passportNumber,
         mock: 5, // You can adjust this based on actual data
         result: [], // Empty array as per the provided structure
         isDeleted: false, // Default value for isDeleted
       };
-
-      console.log("Formatted Data: ", formattedData);
 
       // Add registration logic here (e.g., API call)
       // Assuming you are using a function like `registerUser` to send the data
@@ -277,21 +278,43 @@ const RegisterPage = () => {
             </div>
 
             {/* Email */}
-            <div className="form-control my-1">
-              <label className="label">
-                <span className="label-text text-gray-600 ml-2 font-semibold">
-                  Email
-                </span>
-              </label>
-              <input
-                type="email"
-                {...register("email", { required: "Email is required" })}
-                placeholder=""
-                className="input bg-gray-50 h-[40px] "
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
-              )}
+            <div>
+              <div className="form-control my-1">
+                <label className="label">
+                  <span className="label-text text-gray-600 ml-2 font-semibold">
+                    Email
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  {...register("email", { required: "Email is required" })}
+                  placeholder=""
+                  className="input bg-gray-100 h-[40px] "
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email.message}</p>
+                )}
+              </div>
+              <div className="form-control my-1">
+                <label className="label">
+                  <span className="label-text text-gray-600 ml-2 font-semibold">
+                    Transaction ID
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  {...register("transactionId", {
+                    required: "Transaction ID is required",
+                  })}
+                  placeholder=""
+                  className="input bg-gray-100 h-[40px] "
+                />
+                {errors.transactionId && (
+                  <p className="text-red-500 text-sm">
+                    {errors.transactionId.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">

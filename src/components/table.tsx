@@ -10,6 +10,9 @@ interface Booking {
   bookingDate: string;
   startTime: string;
   status: string;
+  attendance?: string;
+  name?: string;
+  testType?: string;
 }
 
 const Table = ({ userId }: { userId: string }) => {
@@ -61,6 +64,7 @@ const Table = ({ userId }: { userId: string }) => {
         <tr>
           <th></th>
           <th>Name</th>
+          <th>Test Type</th>
           <th>Date</th>
           <th>Start Time</th>
           <th>Status</th>
@@ -72,10 +76,11 @@ const Table = ({ userId }: { userId: string }) => {
         {bookings.map((booking: Booking, index: number) => (
           <tr key={booking._id}>
             <td>{index + 1}</td>
-            <td>IELTS</td>
+            <td>{booking.name}</td>
+            <td>{booking.testType}</td>
             <td>{booking.bookingDate}</td>
             <td>{booking.startTime.slice(0, 5)}</td>
-            <td>{booking.status === "active" ? "Pending" : booking.status}</td>
+            <td>{booking.status}</td>
 
             {/* Re-schedule Button */}
             <td>
