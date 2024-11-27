@@ -325,7 +325,6 @@ const TableAdmin = () => {
                 value={mock}
                 onChange={(e) => setMock(e.target.value)}
                 className="px-2 py-1 border rounded w-full"
-                disabled={!!mock}
               />
             </div>
             <div className="mt-4">
@@ -337,7 +336,6 @@ const TableAdmin = () => {
                 value={mockType}
                 onChange={(e) => setMockType(e.target.value)}
                 className="px-2 py-1 border rounded w-full"
-                disabled={!!mockType}
               >
                 <option value="">Select Mock Type</option>
                 <option value="IELTS">IELTS</option>
@@ -356,24 +354,14 @@ const TableAdmin = () => {
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
                 className="px-2 py-1 border rounded w-full"
-                disabled={!!transactionId}
               />
             </div>
             <div className="flex justify-end mt-4">
               <button
                 onClick={(e) => {
-                  // Prevent the action if the button is disabled
-                  if (mock && mockType && transactionId) {
-                    return;
-                  }
                   onUpdateUser(); // Call the update function if not disabled
                 }}
-                className={`px-4 py-2 ${
-                  mock && mockType && transactionId
-                    ? "bg-gray-500 cursor-not-allowed"
-                    : "bg-green-500 hover:bg-green-600"
-                } text-white rounded mr-2`}
-                disabled={!(mock && mockType && transactionId)} // Disable button if all fields are filled
+                className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded mr-2`}
               >
                 Save
               </button>
