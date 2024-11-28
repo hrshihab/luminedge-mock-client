@@ -75,6 +75,8 @@ function BookingRequestsPage() {
   const [isDownloadPreviewOpen, setIsDownloadPreviewOpen] =
     useState<boolean>(false);
   const [bookingToDownload, setBookingToDownload] = useState<any | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string>("");
+  const [selectedAttendance, setSelectedAttendance] = useState<string>("");
 
   // Extract unique test names for the dropdown
   const testNames = Array.from(
@@ -404,6 +406,16 @@ function BookingRequestsPage() {
     setIsDownloadPreviewOpen(false);
   }
 
+  const handleBookingChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedBookingId(event.target.value);
+  };
+
+  const handleAttendanceChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setSelectedAttendance(event.target.value);
+  };
+
   return (
     <div className="px-2 ">
       <h1 className="text-2xl font-bold mb-4">Booking Requests</h1>
@@ -499,16 +511,11 @@ function BookingRequestsPage() {
             <table className="table-auto w-full border-collapse">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="lg:px-2 2xl:px-4 py-2 text-left">Email</th>
-                  <th className="lg:px-2 2xl:px-4 py-2 text-left">
-                    Request Date
-                  </th>
-                  <th className="lg:px-2 2xl:px-4 py-2 text-left">
-                    Attendance
-                  </th>
-                  <th className="lg:px-2 2xl:px-4 text-left">Email</th>
-                  <th className="lg:px-2 2xl:px-4 text-left">Request Date</th>
-                  <th className="lg:px-2 2xl:px-4 text-left">Attendance</th>
+                  <th className="px-4 py-2 text-left">Name</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+
+                  <th className="px-4 text-left">Request Date</th>
+                  <th className="px-4 text-left">Attendance</th>
                 </tr>
               </thead>
               <tbody>
@@ -517,13 +524,13 @@ function BookingRequestsPage() {
                     <td className="px-4 py-2">
                       {userDetails[userId]?.name || "Loading..."}
                     </td>
-                    <td className="lg:px-2 2xl:px-4">
+                    <td className="px-4">
                       {userDetails[userId]?.email || "Loading..."}
                     </td>
-                    <td className="lg:px-2 2xl:px-4">
+                    <td className="px-4">
                       {selectedBooking.bookingDate || "Loading..."}
                     </td>
-                    <td className="lg:px-2 2xl:px-4">
+                    <td className="px-4">
                       {attendanceValues[userId] === "present" ||
                       attendanceValues[userId] === "absent" ? (
                         <span>{attendanceValues[userId]}</span>
