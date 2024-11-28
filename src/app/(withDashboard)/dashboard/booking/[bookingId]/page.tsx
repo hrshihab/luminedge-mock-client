@@ -79,7 +79,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
     try {
       const formattedDate = selectedDate.toLocaleDateString("en-CA");
       const response = await axios.get(
-        `http://localhost:5000/api/v1/schedule/${formattedDate}/${params.bookingId}`
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/schedule/${formattedDate}/${params.bookingId}`
       );
       setScheduleData(response.data.schedules);
       console.log(response.data.schedules);

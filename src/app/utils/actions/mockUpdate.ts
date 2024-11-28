@@ -10,7 +10,7 @@ export const updateMockNumber = async (
 ) => {
   console.log('mock', mockType);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/update/${selectedUser._id}/${mockNumber}`,
+    `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/update/${selectedUser._id}/${mockNumber}`,
     {
       method: "PUT",
       headers: {

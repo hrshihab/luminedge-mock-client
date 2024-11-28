@@ -25,7 +25,7 @@ const Table = ({ userId }: { userId: string }) => {
     const fetchBookings = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/bookings/${userId}`
+          `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/bookings/${userId}`
         );
         setBookings(response.data.bookings);
       } catch (error) {
@@ -40,7 +40,7 @@ const Table = ({ userId }: { userId: string }) => {
   const onDeleteBooking = async (bookingId: string) => {
     try {
       await axios.delete(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/bookings/${bookingId}`
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/bookings/${bookingId}`
       );
       // Update the bookings list after deletion
       setBookings((prevBookings) =>

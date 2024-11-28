@@ -14,7 +14,7 @@ const GetMe = () => {
           if (userIdFromToken) {
             setUserId(userIdFromToken.userId);
             const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userIdFromToken.userId}`
+              `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/${userIdFromToken.userId}`
             );
             setUserData(response.data);
           }

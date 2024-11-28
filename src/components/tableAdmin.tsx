@@ -39,7 +39,7 @@ const TableAdmin = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/users`
+          `https://luminedge-mock-test-booking-server.vercel.app/api/v1/admin/users`
         );
         const sortedUsers = response.data.users.sort(
           (a: User, b: User) =>
@@ -91,7 +91,7 @@ const TableAdmin = () => {
     console.log("here", transactionId);
     try {
       await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/status/${userId}`,
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/status/${userId}`,
         {
           status: newStatus,
         }
@@ -153,7 +153,7 @@ const TableAdmin = () => {
     const newStatus = user.isDeleted ? "active" : "blocked"; // Toggle status based on isDeleted
     try {
       await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/block/${userId}`,
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/block/${userId}`,
         {
           isDeleted: !user.isDeleted, // Toggle isDeleted status
         }

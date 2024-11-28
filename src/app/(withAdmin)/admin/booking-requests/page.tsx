@@ -109,7 +109,7 @@ function BookingRequestsPage() {
   async function fetchBookings() {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/bookings`
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/admin/bookings`
       );
       const data = await response.json();
       setTotalBookings(data.bookings);
@@ -210,7 +210,7 @@ function BookingRequestsPage() {
   async function fetchUserData(userId: string) {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/${userId}`
       );
       const data = await response.json();
       const {
@@ -292,7 +292,7 @@ function BookingRequestsPage() {
       //console.log(attendance);
       // Update booking status and attendance
       await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/bookings/${selectedBooking.scheduleId}`,
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/bookings/${selectedBooking.scheduleId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -305,7 +305,7 @@ function BookingRequestsPage() {
       );
 
       // Send notification
-      // await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/notifications/send`, {
+      // await fetch(`https://luminedge-mock-test-booking-server.vercel.app/api/v1/notifications/send`, {
       //   method: "POST",
       //   headers: { "Content-Type": "application/json" },
       //   body: JSON.stringify({
@@ -364,7 +364,7 @@ function BookingRequestsPage() {
         bookingToDownload.userIds.map(async (userId: string) => {
           const user = userDetails[userId];
           const attendanceResponse = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/attendance/${userId}`
+            `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/attendance/${userId}`
           );
           const attendanceValue = attendanceResponse.data.attendance || "N/A"; // Get attendance value
           return [

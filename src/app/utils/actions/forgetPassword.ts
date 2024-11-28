@@ -1,7 +1,7 @@
 
 export const forgetPassword = async (email: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/forget-password`,
+    `https://luminedge-mock-test-booking-server.vercel.app/api/v1/auth/forget-password`,
     {
     
       method: "POST",

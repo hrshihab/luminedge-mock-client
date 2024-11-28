@@ -2,7 +2,7 @@
 
 export const deleteSchedule = async (id: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/delete-schedule/${id}`,
+    `https://luminedge-mock-test-booking-server.vercel.app/api/v1/admin/delete-schedule/${id}`,
     { method: "DELETE" }
   );
   return response.json();

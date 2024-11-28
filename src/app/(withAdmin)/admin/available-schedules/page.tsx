@@ -37,7 +37,7 @@ function AvailableSchedulesPage() {
 
   const fetchSchedules = async () => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/get-schedules`,
+      `https://luminedge-mock-test-booking-server.vercel.app/api/v1/admin/get-schedules`,
       { next: { revalidate: 0 } }
     );
     const data = await response.json();
@@ -47,7 +47,7 @@ function AvailableSchedulesPage() {
   const deleteSchedule = async (id: string) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/delete-schedule/${id}`,
+        `https://luminedge-mock-test-booking-server.vercel.app/api/v1/admin/delete-schedule/${id}`,
         { method: "DELETE" }
       );
       const result = await response.json();

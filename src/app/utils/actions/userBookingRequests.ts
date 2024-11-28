@@ -1,6 +1,6 @@
 export const userBookingRequests = async (userId: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/booking-requests/${userId}`
+    `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/booking-requests/${userId}`
   );
   return response.json();
 };
