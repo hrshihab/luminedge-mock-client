@@ -6,6 +6,7 @@ import { FiDownload } from "react-icons/fi"; // Download icon
 // Define a type for the schedule
 type Schedule = {
   id: string;
+  name: string;
   testType: string;
   startDate: string; // or Date, depending on your data
   status: string;
@@ -28,6 +29,7 @@ function AvailableSchedulesPage() {
   const [testTypeFilter, setTestTypeFilter] = useState<string>("");
   const [dateSortOrder, setDateSortOrder] = useState<string>("ascending");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [startDateFilter, setStartDateFilter] = useState<string>("");
 
   useEffect(() => {
     fetchSchedules();
@@ -61,21 +63,26 @@ function AvailableSchedulesPage() {
 
   const filteredSchedules = React.useMemo(() => {
     const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
-    return schedules.filter((schedule: any) => {
-      const isTestTypeMatch = testTypeFilter
-        ? schedule.testType === testTypeFilter
-        : true;
-      let isDateMatch = true;
 
+    return schedules.filter((schedule: Schedule) => {
+      const scheduleDate = schedule.startDate.split("T")[0]; // Extract only the date (YYYY-MM-DD)
+
+      // Test type filter
+      const isTestTypeMatch = testTypeFilter
+        ? schedule.name === testTypeFilter
+        : true;
+
+      // Date filter (completed, upcoming, today)
+      let isDateMatch = true;
       switch (dateFilter) {
         case "completed":
-          isDateMatch = schedule.startDate < today;
+          isDateMatch = scheduleDate < today;
           break;
         case "upcoming":
-          isDateMatch = schedule.startDate > today;
+          isDateMatch = scheduleDate > today;
           break;
         case "today":
-          isDateMatch = schedule.startDate === today;
+          isDateMatch = scheduleDate === today;
           break;
         case "all":
         default:
@@ -83,9 +90,15 @@ function AvailableSchedulesPage() {
           break;
       }
 
-      return isTestTypeMatch && isDateMatch;
+      // Start date filter
+      const isStartDateMatch = startDateFilter
+        ? scheduleDate === startDateFilter
+        : true;
+
+      // Combine all filters
+      return isTestTypeMatch && isDateMatch && isStartDateMatch;
     });
-  }, [schedules, testTypeFilter, dateFilter]);
+  }, [schedules, testTypeFilter, dateFilter, startDateFilter]);
 
   const sortedSchedules = React.useMemo(() => {
     let sortableSchedules = [...filteredSchedules];
@@ -118,8 +131,7 @@ function AvailableSchedulesPage() {
         >
           <option value="">All Test Types</option>
           <option value="GRE">GRE</option>
-          <option value="IELTS Computer Based">IELTS</option>
-          <option value="IELTS Paper Based">IELTS Academic</option>
+          <option value="IELTS">IELTS</option>
           <option value="TOEFL">TOEFL</option>
           <option value="PTE">PTE</option>
         </select>
@@ -141,6 +153,13 @@ function AvailableSchedulesPage() {
           <option value="upcoming">Upcoming</option>
           <option value="today">Today</option>
         </select>
+        <input
+          type="date"
+          value={startDateFilter}
+          onChange={(e) => setStartDateFilter(e.target.value)}
+          className="px-2 py-1 border rounded"
+          placeholder="Start Date"
+        />
       </div>
       <table className="table-auto w-full border-collapse">
         <thead>

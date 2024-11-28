@@ -22,9 +22,11 @@ export default function CreateSchedulePage() {
   const router = useRouter();
   const pathname = usePathname();
 
-  if (!getUserIdFromToken()) {
-    router.push("/login");
-  }
+  useEffect(() => {
+    if (!getUserIdFromToken()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   const addTimeSlot = (date: string) => {
     setFormData((prev) => ({

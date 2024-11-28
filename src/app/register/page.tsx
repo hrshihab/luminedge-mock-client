@@ -428,13 +428,13 @@ const RegisterPage = () => {
           </form>
 
           {/* Google Sign Up */}
-          <div
+          {/* <div
             onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
             className="border-2 border-[#FACE39] rounded-xl py-3 my-6 mx-auto w-full flex justify-center mb-10 mt-2"
           >
             <FcGoogle className="text-2xl mr-2" />
             <span className="font-semibold">Sign up with Google</span>
-          </div>
+          </div> */}
           {/* Add this sign in message for all screen sizes */}
           <div className="text-center mt-6 text-sm text-gray-600">
             Already have an account?{" "}

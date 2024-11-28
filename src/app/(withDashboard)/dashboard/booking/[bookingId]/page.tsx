@@ -20,6 +20,7 @@ type TimeSlot = {
 type Schedule = {
   _id: string; // Unique identifier for the schedule
   courseId: string; // ID of the course associated with this schedule
+  name: string; // Name of the course
   startDate: string; // Start date in "YYYY-MM-DD" format
   endDate: string; // End date in "YYYY-MM-DD" format
   timeSlots: TimeSlot[]; // Array of time slots
@@ -37,6 +38,8 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userStatus, setUserStatus] = useState<string | null>(null); // New state for user status
+  const [userTestType, setUserTestType] = useState<string | null>(null); // New state for user test type
+  const [userMockType, setUserMockType] = useState<string | null>(null); // New state for user mock type
 
   const router = useRouter();
 
@@ -98,8 +101,8 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
         const data = response.data;
         console.log(data.user.status); //undefined
         setUserStatus(data.user.status);
-        //console.log(userStatus);
-        // Assuming response includes 'status' field
+        setUserTestType(data.user.testType); // Set user test type
+        setUserMockType(data.user.mockType); // Set user mock type
       } catch (error) {
         console.error("Error fetching user status:", error);
       }
@@ -141,7 +144,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
             slotId: selectedSlotId,
             userId,
             scheduleId,
-            status: "active",
+            status: "pending",
             name: courseName,
             testType: testType,
             testSystem: testSystem,
@@ -181,12 +184,14 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
           <label htmlFor="testType">Test Type</label>
           <select
             className="select select-bordered bg-[#FACE39] text-black w-full"
-            value={testType}
+            value={userTestType || " "}
             //onChange={(e) => setTestType(e.target.value)}
             disabled={!isDropdownEnabled} // Disable if course is not IELTS
           >
-            <option value="Paper Based">Paper Based</option>
-            <option value="Computer Based">Computer Based</option>
+            <option value="Paper Based">
+              {" "}
+              {userTestType || "Paper Based"}
+            </option>
           </select>
         </div>
 
@@ -212,56 +217,62 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
         <div className="mt-8 w-full mx-auto">
           {scheduleData.length > 0 ? (
             <>
-              {scheduleData.map((schedule, index) => (
-                <div
-                  key={index}
-                  className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 rounded"
-                >
-                  {schedule.timeSlots.map((slot, slotIndex) => (
-                    <div
-                      key={slotIndex}
-                      className={`mt-2 pl-4 py-2 w-full rounded-lg ${
-                        selectedSlotId === slot.slotId
-                          ? "bg-yellow-300"
-                          : "bg-gray-100"
-                      } hover:bg-[#FACE39] cursor-pointer`}
-                      onClick={() =>
-                        handleSlotSelect(
-                          slot.slotId,
-                          schedule._id,
-                          schedule.testType
-                        )
-                      }
-                    >
-                      <div className="grid grid-cols-2">
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-800">
-                            {slot.startTime.slice(0, 5)}
-                            <p className="text-xs text-gray-500">Start</p>
-                          </h3>
+              {scheduleData
+                .filter(
+                  (schedule) =>
+                    schedule.testType === userTestType &&
+                    schedule.name === userMockType // Filter schedules by user test type and mock type
+                )
+                .map((schedule, index) => (
+                  <div
+                    key={index}
+                    className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 rounded"
+                  >
+                    {schedule.timeSlots.map((slot, slotIndex) => (
+                      <div
+                        key={slotIndex}
+                        className={`mt-2 pl-4 py-2 w-full rounded-lg ${
+                          selectedSlotId === slot.slotId
+                            ? "bg-yellow-300"
+                            : "bg-gray-100"
+                        } hover:bg-[#FACE39] cursor-pointer`}
+                        onClick={() =>
+                          handleSlotSelect(
+                            slot.slotId,
+                            schedule._id,
+                            schedule.testType
+                          )
+                        }
+                      >
+                        <div className="grid grid-cols-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-800">
+                              {slot.startTime.slice(0, 5)}
+                              <p className="text-xs text-gray-500">Start</p>
+                            </h3>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-800">
+                              {slot.endTime.slice(0, 5)}
+                              <p className="text-xs text-gray-500">End</p>
+                            </h3>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-800">
-                            {slot.endTime.slice(0, 5)}
-                            <p className="text-xs text-gray-500">End</p>
-                          </h3>
+                        <div className="flex items-center gap-2 mt-3 text-xs">
+                          <MdOutlinePersonOutline />
+                          <p className="text-gray-800 mr-8">Available Seats</p>
+                          {slot.slot}
                         </div>
+                        <h4 className="text-xs font-semibold  mt-2">
+                          Test Type :{" "}
+                          <span className="text-red-500">
+                            {schedule.testType}
+                          </span>
+                        </h4>
                       </div>
-                      <div className="flex items-center gap-2 mt-3 text-xs">
-                        <MdOutlinePersonOutline />
-                        <p className="text-gray-800 mr-8">Available Seats</p>
-                        {slot.slot}
-                      </div>
-                      <h4 className="text-xs font-semibold  mt-2">
-                        Test Type :{" "}
-                        <span className="text-red-500">
-                          {schedule.testType}
-                        </span>
-                      </h4>
-                    </div>
-                  ))}
-                </div>
-              ))}
+                    ))}
+                  </div>
+                ))}
             </>
           ) : (
             <p>No schedules available for this date.</p>

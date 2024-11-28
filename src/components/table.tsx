@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { AiOutlineEllipsis } from "react-icons/ai";
@@ -17,6 +18,7 @@ interface Booking {
 
 const Table = ({ userId }: { userId: string }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch bookings when the component mounts
@@ -86,19 +88,20 @@ const Table = ({ userId }: { userId: string }) => {
             <td>
               <button
                 disabled={
-                  booking.status !== "active" ||
+                  booking.status !== "pending" ||
                   !isPast24Hours(booking.bookingDate, booking.startTime)
                 }
                 onClick={() => {
                   toast((t) => (
                     <div>
                       <p className=" mb-2">
-                        Are you sure you want to delete this booking?
+                        Are you sure you want to reschedule this booking?
                       </p>
                       <button
                         onClick={() => {
                           onDeleteBooking(booking._id); // Call delete function on confirm
                           toast.dismiss(t.id); // Dismiss the toast after action
+                          router.push("/dashboard/courses"); // Redirect to bookings page
                         }}
                         className="bg-green-500 hover:bg-green-700 MT mr-2 text-white font-bold py-2 px-4 rounded"
                       >
@@ -114,7 +117,7 @@ const Table = ({ userId }: { userId: string }) => {
                   ));
                 }}
                 className={`px-4 py-2 font-bold rounded ${
-                  booking.status === "active" &&
+                  booking.status === "pending" &&
                   isPast24Hours(booking.bookingDate, booking.startTime)
                     ? "font-bold  text-xl text-gray-900 hover:bg-black hover:text-white"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"

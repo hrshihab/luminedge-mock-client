@@ -33,6 +33,7 @@ const TableAdmin = () => {
   const [mockType, setMockType] = useState<string>(""); // State for mock type
   const [transactionId, setTransactionId] = useState<string>(""); // State for transaction ID
   const [actionFilter, setActionFilter] = useState<string>("all"); // Holds the selected action filter
+  const [searchTerm, setSearchTerm] = useState<string>(""); // State for search term
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -54,7 +55,7 @@ const TableAdmin = () => {
     fetchUsers();
   }, []);
 
-  // Filter users by status and action
+  // Filter users by status, action, and search term
   useEffect(() => {
     let filtered = users;
 
@@ -70,8 +71,15 @@ const TableAdmin = () => {
       filtered = filtered.filter((user) => !user.isDeleted);
     }
 
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter((user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     setFilteredUsers(filtered);
-  }, [statusFilter, actionFilter, users]);
+  }, [statusFilter, actionFilter, users, searchTerm]);
 
   // Calculate pagination
   const indexOfLastUser = currentPage * usersPerPage;
@@ -165,6 +173,19 @@ const TableAdmin = () => {
   return (
     <>
       <div className="flex gap-4 py-4">
+        {/* Search Bar */}
+        <div className="mb-4">
+          <label htmlFor="search" className="mr-2">
+            Search by Name:
+          </label>
+          <input
+            type="text"
+            id="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="px-2 py-1 border rounded"
+          />
+        </div>
         {/* Filter by Status and Action */}
         <div className="mb-4">
           <label htmlFor="statusFilter" className="mr-2">
@@ -315,56 +336,72 @@ const TableAdmin = () => {
               <strong>Created At:</strong> {selectedUser.createdAt}
             </p>
 
-            <div className="mt-4">
-              <label htmlFor="mock" className="block mb-2">
-                Mock Number:
-              </label>
-              <input
-                type="text"
-                id="mock"
-                value={mock}
-                onChange={(e) => setMock(e.target.value)}
-                className="px-2 py-1 border rounded w-full"
-              />
-            </div>
-            <div className="mt-4">
-              <label htmlFor="mockType" className="block mb-2">
-                Mock Type:
-              </label>
-              <select
-                id="mockType"
-                value={mockType}
-                onChange={(e) => setMockType(e.target.value)}
-                className="px-2 py-1 border rounded w-full"
-              >
-                <option value="">Select Mock Type</option>
-                <option value="IELTS">IELTS</option>
-                <option value="GRE">GRE</option>
-                <option value="TOFEL">TOFEL</option>
-                <option value="Pearson PTE">Pearson PTE</option>
-              </select>
-            </div>
-            <div className="mt-4">
-              <label htmlFor="transactionId" className="block mb-2">
-                Transaction ID:
-              </label>
-              <input
-                type="text"
-                id="transactionId"
-                value={transactionId}
-                onChange={(e) => setTransactionId(e.target.value)}
-                className="px-2 py-1 border rounded w-full"
-              />
-            </div>
+            {/* this form is hidden if selectedUser?.mockType, mock, transactionId have values; if any is missing, only those fields will be visible */}
+            {(!selectedUser?.mockType ||
+              !selectedUser?.mock ||
+              !selectedUser?.transactionId) && (
+              <>
+                {!selectedUser?.mock && (
+                  <div className="mt-4">
+                    <label htmlFor="mock" className="block mb-2">
+                      Mock Number:
+                    </label>
+                    <input
+                      type="text"
+                      id="mock"
+                      value={mock}
+                      onChange={(e) => setMock(e.target.value)}
+                      className="px-2 py-1 border rounded w-full"
+                    />
+                  </div>
+                )}
+                {!selectedUser?.mockType && (
+                  <div className="mt-4">
+                    <label htmlFor="mockType" className="block mb-2">
+                      Mock Type:
+                    </label>
+                    <select
+                      id="mockType"
+                      value={mockType}
+                      onChange={(e) => setMockType(e.target.value)}
+                      className="px-2 py-1 border rounded w-full"
+                    >
+                      <option value="">Select Mock Type</option>
+                      <option value="IELTS">IELTS</option>
+                      <option value="GRE">GRE</option>
+                      <option value="TOFEL">TOFEL</option>
+                      <option value="Pearson PTE">Pearson PTE</option>
+                    </select>
+                  </div>
+                )}
+                {!selectedUser?.transactionId && (
+                  <div className="mt-4">
+                    <label htmlFor="transactionId" className="block mb-2">
+                      Transaction ID:
+                    </label>
+                    <input
+                      type="text"
+                      id="transactionId"
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      className="px-2 py-1 border rounded w-full"
+                    />
+                  </div>
+                )}
+                {/* Show Save button only if at least one field is missing */}
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={(e) => {
+                      onUpdateUser(); // Call the update function if not disabled
+                    }}
+                    className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded mr-2`}
+                  >
+                    Save
+                  </button>
+                </div>
+              </>
+            )}
             <div className="flex justify-end mt-4">
-              <button
-                onClick={(e) => {
-                  onUpdateUser(); // Call the update function if not disabled
-                }}
-                className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded mr-2`}
-              >
-                Save
-              </button>
               <button
                 onClick={closeModal}
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"

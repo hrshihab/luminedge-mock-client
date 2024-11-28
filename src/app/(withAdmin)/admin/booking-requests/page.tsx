@@ -5,6 +5,7 @@ import { FiDownload } from "react-icons/fi"; // Download icon
 import { jsPDF } from "jspdf";
 import Link from "next/link";
 import "jspdf-autotable";
+import axios from "axios";
 
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {
@@ -338,7 +339,7 @@ function BookingRequestsPage() {
       }
     });
 
-  function confirmDownload() {
+  async function confirmDownload() {
     if (bookingToDownload) {
       const doc = new jsPDF();
 
@@ -357,18 +358,24 @@ function BookingRequestsPage() {
       );
 
       // Prepare table data
-      const tableData = bookingToDownload.userIds.map((userId: string) => {
-        const user = userDetails[userId];
-        return [
-          user?.name || "N/A",
-          user?.email || "N/A",
-          user?.contactNo || "N/A",
-          user?.transactionId || "N/A",
-          user?.passportNumber || "N/A",
-          user?.totalMock || "N/A",
-          (user?.totalMock || 0) - (user?.mock || 0),
-        ];
-      });
+      const tableData = await Promise.all(
+        bookingToDownload.userIds.map(async (userId: string) => {
+          const user = userDetails[userId];
+          const attendanceResponse = await axios.get(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/attendance/${userId}`
+          );
+          const attendanceValue = attendanceResponse.data.attendance || "N/A"; // Get attendance value
+          return [
+            user?.name || "N/A",
+            user?.email || "N/A",
+            user?.contactNo || "N/A",
+            user?.transactionId || "N/A",
+            user?.passportNumber || "N/A",
+            user?.totalMock || "N/A",
+            attendanceValue, // Add attendance value to the table data
+          ];
+        })
+      );
 
       // Add table using autoTable plugin
       doc.autoTable({
@@ -398,7 +405,7 @@ function BookingRequestsPage() {
   }
 
   return (
-    <div className="px-4">
+    <div className="px-2 ">
       <h1 className="text-2xl font-bold mb-4">Booking Requests</h1>
 
       <div className="flex justify-start gap-5 items-center mb-4">
@@ -429,50 +436,55 @@ function BookingRequestsPage() {
         </select>
       </div>
 
-      <table className="table-auto w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="px-4 py-2 text-left">Name</th>
-            <th className="px-4 py-2 text-left">Test Name</th>
-            <th className="px-4 py-2 text-left">Booking Date</th>
-            <th className="px-4 py-2 text-left">Slot</th>
-            <th className="px-4 py-2 text-left">User Count</th>
-            <th className="px-4 py-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredBookings.map((booking, index) => (
-            <tr
-              key={`${booking.id || index}-${booking.bookingDate}-${
-                booking.slotId
-              }`}
-              className="border-b"
-            >
-              <td className="px-4 py-2">{booking.name}</td>
-              <td className="px-4 py-2">{booking.testType}</td>
-              <td className="px-4 py-2">{booking.bookingDate}</td>
-              <td className="px-4 py-2">
-                {booking.startTime} - {booking.endTime} (Slot: {booking.slotId})
-              </td>
-              <td className="px-4 py-2">{booking.userIds.length}</td>
-              <td className="px-4 py-2">
-                <button
-                  onClick={() => handleDownloadClick(booking)}
-                  className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
-                >
-                  Download
-                </button>
-                <button
-                  onClick={() => seeBookingDetails(booking)}
-                  className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                >
-                  See Details
-                </button>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="px-4 py-2 text-left">Name</th>
+              <th className="px-4 py-2 text-left">Test Name</th>
+              <th className="px-4 py-2 text-left">Booking Date</th>
+              <th className="px-4 py-2 text-left">Slot</th>
+              <th className="px-4 py-2 text-left">User Count</th>
+              <th className="px-4 py-2 text-left">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredBookings.map((booking, index) => (
+              <tr
+                key={`${booking.id || index}-${booking.bookingDate}-${
+                  booking.slotId
+                }`}
+                className="border-b"
+              >
+                <td className="px-4 py-2">{booking.name}</td>
+                <td className="px-4 py-2">{booking.testType}</td>
+                <td className="px-4 py-2">{booking.bookingDate}</td>
+                <td className="px-4 py-2">
+                  {booking.startTime.slice(0, 5)} -{" "}
+                  {booking.endTime.slice(0, 5)}{" "}
+                </td>
+                <td className="px-4 py-2 text-center">
+                  {booking.userIds.length}
+                </td>
+                <td className="px-4 py-2">
+                  <button
+                    onClick={() => handleDownloadClick(booking)}
+                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
+                  >
+                    Download
+                  </button>
+                  <button
+                    onClick={() => seeBookingDetails(booking)}
+                    className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    See Details
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {isModalOpen && selectedBooking && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
@@ -487,88 +499,53 @@ function BookingRequestsPage() {
             <table className="table-auto w-full border-collapse">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="px-4 py-2 text-left">User Name</th>
-                  <th className="px-4 py-2 text-left">Email</th>
-                  <th className="px-4 py-2 text-left">Request Date</th>
-                  <th className="px-4 py-2 text-left">Attendance</th>
-                  {/* <th className="px-4 py-2 text-left">Actions</th> */}
+                  <th className="lg:px-2 2xl:px-4 py-2 text-left">Email</th>
+                  <th className="lg:px-2 2xl:px-4 py-2 text-left">
+                    Request Date
+                  </th>
+                  <th className="lg:px-2 2xl:px-4 py-2 text-left">
+                    Attendance
+                  </th>
+                  <th className="lg:px-2 2xl:px-4 text-left">Email</th>
+                  <th className="lg:px-2 2xl:px-4 text-left">Request Date</th>
+                  <th className="lg:px-2 2xl:px-4 text-left">Attendance</th>
                 </tr>
               </thead>
               <tbody>
-                {selectedBooking.userIds.map((userId: string) => {
-                  // console.log(
-                  //   `Rendering userId: ${userId}, Attendance: ${attendanceValues[userId]}`
-                  // ); // Debugging line
-                  return (
-                    <tr key={userId} className="border-b">
-                      <td className="px-4 py-2">
-                        {userDetails[userId]?.name || "Loading..."}
-                      </td>
-                      <td className="px-4 py-2">
-                        {userDetails[userId]?.email || "Loading..."}
-                      </td>
-                      <td className="px-4 py-2">
-                        {selectedBooking.bookingDate || "Loading..."}
-                      </td>
-
-                      <td className="px-4 py-2">
-                        {attendanceValues[userId] === "present" ||
-                        attendanceValues[userId] === "absent" ? (
-                          <span>{attendanceValues[userId]}</span>
-                        ) : (
-                          <select
-                            className="px-2 py-1 border rounded"
-                            value={attendanceValues[userId] || ""}
-                            onChange={(e) => {
-                              const newAttendance = e.target.value;
-                              handleSubmit(userId, newAttendance);
-                            }}
-                          >
-                            <option value="N/A" disabled selected>
-                              Select Attendance
-                            </option>
-                            <option value="present">Present</option>
-                            <option value="absent">Absent</option>
-                          </select>
-                        )}
-                      </td>
-
-                      {/* <td className="px-4 py-2">
+                {selectedBooking.userIds.map((userId: string) => (
+                  <tr key={userId} className="border-b">
+                    <td className="px-4 py-2">
+                      {userDetails[userId]?.name || "Loading..."}
+                    </td>
+                    <td className="lg:px-2 2xl:px-4">
+                      {userDetails[userId]?.email || "Loading..."}
+                    </td>
+                    <td className="lg:px-2 2xl:px-4">
+                      {selectedBooking.bookingDate || "Loading..."}
+                    </td>
+                    <td className="lg:px-2 2xl:px-4">
+                      {attendanceValues[userId] === "present" ||
+                      attendanceValues[userId] === "absent" ? (
+                        <span>{attendanceValues[userId]}</span>
+                      ) : (
                         <select
                           className="px-2 py-1 border rounded"
-                          value={selectedBooking?.status || ""}
+                          value={attendanceValues[userId] || ""}
                           onChange={(e) => {
-                            const newStatus = e.target.value;
-                            setStatusValues((prev) => ({
-                              ...prev,
-                              [userId]: newStatus,
-                            }));
-                            setSelectBookings((prev) => ({
-                              ...prev,
-                              [userId]: { ...prev[userId], status: newStatus },
-                            }));
+                            const newAttendance = e.target.value;
+                            handleSubmit(userId, newAttendance);
                           }}
                         >
-                          <option value="" disabled>
-                            Make Confirmation
+                          <option value="N/A" disabled selected>
+                            Select Attendance
                           </option>
-                          <option value="accept">Accept</option>
-                          <option value="reject">Reject</option>
+                          <option value="present">Present</option>
+                          <option value="absent">Absent</option>
                         </select>
-                      </td> */}
-                      {/* <td className="px-4 py-2">
-                        <button
-                          onClick={() =>
-                            handleSubmit(userId, attendanceValues[userId])
-                          }
-                          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          Submit
-                        </button>
-                      </td> */}
-                    </tr>
-                  );
-                })}
+                      )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

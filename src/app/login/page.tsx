@@ -217,7 +217,7 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
-          <p className="text-center">Or </p>
+          {/* <p className="text-center">Or </p>
           <div className="border-2 border-[#FACE39] rounded-xl py-2 my-4 lg:my-6 mx-auto w-full flex justify-center">
             <span
               onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
@@ -225,7 +225,7 @@ const LoginPage = () => {
             >
               <FcGoogle /> Sign in with Google
             </span>
-          </div>
+          </div> */}
           <p className="text-center text-sm md:text-base">
             Don&apos;t have an account?{" "}
             <Link className="text-[#FACE39] font-bold" href="/register">

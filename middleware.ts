@@ -12,13 +12,13 @@ export default function middleware(req: NextRequest) {
   ];
 
   // Check if the request URL matches any of the protected routes
-  const isProtectedRoute = protectedRoutes.some(route => url.startsWith(`http://localhost:3000${route}`));
+  const isProtectedRoute = protectedRoutes.some(route => url.startsWith(`https://luminedge.netlify.app${route}`));
 
   if (!verify && isProtectedRoute) {
-    return NextResponse.redirect("http://localhost:3000/login");
+    return NextResponse.redirect("https://luminedge.netlify.app/login");
   }
 
-  if (verify && url === "http://localhost:3000/") {
-    return NextResponse.redirect("http://localhost:3000/dashboard");
+  if (verify && url === "https://luminedge.netlify.app/") {
+    return NextResponse.redirect("https://luminedge.netlify.app/dashboard");
   }
 }
