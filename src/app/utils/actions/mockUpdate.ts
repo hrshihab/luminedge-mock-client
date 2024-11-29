@@ -6,7 +6,8 @@ export const updateMockNumber = async (
   mockNumber: string,
   selectedUser: User,
   transactionId : string,
-  mockType:string
+  mockType:string,
+  testType:string
 ) => {
   console.log('mock', mockType);
   const res = await fetch(
@@ -16,7 +17,7 @@ export const updateMockNumber = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ transactionId,mockType }),
+      body: JSON.stringify({ transactionId,mockType,testType }),
       cache: "no-store",
     }
   );
