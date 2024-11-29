@@ -96,7 +96,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
 
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/user/status/${id}`
+          `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/status/${id}`
         );
         const data = response.data;
         console.log(data.user.status); //undefined
@@ -139,7 +139,7 @@ const BookingId = ({ params }: { params: { bookingId: string } }) => {
       try {
         console.log(selectedSlotId, userId, scheduleId, testType, testSystem);
         const response = await axios.post(
-          `http://localhost:5000/api/v1/user/book-slot`,
+          `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/book-slot`,
           {
             slotId: selectedSlotId,
             userId,

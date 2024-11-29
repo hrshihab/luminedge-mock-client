@@ -11,5 +11,5 @@ export const logout = async () => {
   Cookies.remove('accessToken');
 
   // Redirect to login using signOut
-  await signOut({ callbackUrl: "/login" });
+  await signOut({ callbackUrl: "https://luminedge.netlify.app/login" });
 };
