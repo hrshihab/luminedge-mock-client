@@ -27,6 +27,7 @@ const Table = ({ userId }: { userId: string }) => {
         const response = await axios.get(
           `https://luminedge-mock-test-booking-server.vercel.app/api/v1/user/bookings/${userId}`
         );
+        console.log("Bookings:", response.data.bookings);
         setBookings(response.data.bookings);
       } catch (error) {
         console.error("Error fetching bookings:", error);
@@ -87,10 +88,6 @@ const Table = ({ userId }: { userId: string }) => {
             {/* Re-schedule Button */}
             <td>
               <button
-                disabled={
-                  booking.status !== "pending" ||
-                  !isPast24Hours(booking.bookingDate, booking.startTime)
-                }
                 onClick={() => {
                   toast((t) => (
                     <div>
@@ -119,9 +116,15 @@ const Table = ({ userId }: { userId: string }) => {
                 className={`px-4 py-2 font-bold rounded ${
                   booking.status === "pending" &&
                   isPast24Hours(booking.bookingDate, booking.startTime)
-                    ? "font-bold  text-xl text-gray-900 hover:bg-black hover:text-white"
+                    ? "font-bold text-xl text-gray-900 hover:bg-black hover:text-white"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
+                disabled={
+                  !(
+                    booking.status === "pending" &&
+                    isPast24Hours(booking.bookingDate, booking.startTime)
+                  )
+                }
               >
                 <AiOutlineEllipsis />
               </button>

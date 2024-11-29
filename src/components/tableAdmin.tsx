@@ -19,6 +19,7 @@ export interface User {
   totalMock?: number;
 
   isDeleted: boolean;
+  testType?: string; // New field for test type
 }
 
 const TableAdmin = () => {
@@ -34,6 +35,7 @@ const TableAdmin = () => {
   const [transactionId, setTransactionId] = useState<string>(""); // State for transaction ID
   const [actionFilter, setActionFilter] = useState<string>("all"); // Holds the selected action filter
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for search term
+  const [testType, setTestType] = useState<string>(""); // State for test type
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -112,13 +114,21 @@ const TableAdmin = () => {
   const onUpdateUser = async () => {
     if (!selectedUser) return;
     console.log("Mock Number before update:", transactionId);
-    console.log("mocktyep", mockType);
+    console.log("mockType", mockType);
+    console.log("testType", testType); // Log the test type
 
     try {
-      await updateMockNumber(mock, selectedUser, transactionId, mockType);
+      await updateMockNumber(
+        mock,
+        selectedUser,
+        transactionId,
+        mockType,
+        testType
+      ); // Pass testType to the update function
       setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user._id === selectedUser._id ? { ...user, mock } : user
+        prevUsers.map(
+          (user) =>
+            user._id === selectedUser._id ? { ...user, mock, testType } : user // Update testType in user data
         )
       );
       toast.success("User data updated successfully");
@@ -135,6 +145,7 @@ const TableAdmin = () => {
     setMock(user.mock || ""); // Initialize mock number
     setMockType(user.mockType || ""); // Initialize mock type with existing value
     setTransactionId(user.transactionId || ""); // Initialize transaction ID with existing value
+    setTestType(user.testType || ""); // Initialize test type with existing value
     setIsModalOpen(true);
     console.log("Selected User Mock Number:", user.mock);
   };
@@ -320,6 +331,9 @@ const TableAdmin = () => {
               <strong>Mock Type:</strong> {selectedUser?.mockType}
             </p>
             <p>
+              <strong>Test Type:</strong> {selectedUser?.testType}
+            </p>
+            <p>
               <strong>Purchased:</strong> {selectedUser?.totalMock}
             </p>
 
@@ -339,7 +353,8 @@ const TableAdmin = () => {
             {/* this form is hidden if selectedUser?.mockType, mock, transactionId have values; if any is missing, only those fields will be visible */}
             {(!selectedUser?.mockType ||
               !selectedUser?.mock ||
-              !selectedUser?.transactionId) && (
+              !selectedUser?.transactionId ||
+              !selectedUser?.testType) && ( // Check for testType
               <>
                 {!selectedUser?.mock && (
                   <div className="mt-4">
@@ -386,6 +401,23 @@ const TableAdmin = () => {
                       onChange={(e) => setTransactionId(e.target.value)}
                       className="px-2 py-1 border rounded w-full"
                     />
+                  </div>
+                )}
+                {!selectedUser?.testType && ( // New field for test type
+                  <div className="mt-4">
+                    <label htmlFor="testType" className="block mb-2">
+                      Test Type:
+                    </label>
+                    <select
+                      id="testType"
+                      value={testType}
+                      onChange={(e) => setTestType(e.target.value)}
+                      className="px-2 py-1 border rounded w-full"
+                    >
+                      <option value="">Select Test Type</option>
+                      <option value="Paper-Based">Paper-Based</option>
+                      <option value="Computer-Based">Computer-Based</option>
+                    </select>
                   </div>
                 )}
                 {/* Show Save button only if at least one field is missing */}
