@@ -148,7 +148,7 @@ export default function CreateSchedulePage() {
               Select a course
             </option>
             <option value="67337c880794d577cd982b75">IELTS Paper Based</option>
-            <option value="67337c880794d577cd982b75">
+            <option value="6742b783d2f5950620f6df21">
               IELTS Computer Based
             </option>
             <option value="67337c880794d577cd982b76">Pearson PTE</option>
